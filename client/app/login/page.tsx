@@ -6,7 +6,7 @@ export default function Login() {
         <Container>
             <Navbar loggedIn={false} />
             <div className="flex flex-col items-center justify-center grow w-full">
-                <div className="card bg-inherit shadow-none border border-black w-full max-w-[83.3%]">
+                <div className="card bg-inherit shadow-none border border-inherit w-full max-w-[83.3%]">
                     <div className="card-body">
                         <div className="flex flex-col justify-center items-center">
                             <h1 className="text-4xl m-2">Login</h1>
