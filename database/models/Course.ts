@@ -1,0 +1,1 @@
+import { Generated, Selectable, Insertable, Updateable } from "kysely"
