@@ -6,6 +6,15 @@ Links:
 - [BPA WSAP](https://members.bpa.org/?mdocs-file=37104#page63)
 - [Cyber Blog](https://www.cyber-society.tech) <!-- In the future, we might want to integrate this with the website -->
 
+Start Commands:
+```bash
+cd client
+npm run dev
+
+cd server
+npx nodemon index.ts
+```
+
 **Deadline: November 1st**
 
 finish it quickly so we can push it out to people and start marketing

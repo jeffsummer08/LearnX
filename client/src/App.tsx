@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { NextUIProvider } from "@nextui-org/react"
 import Home from "./pages/Home"
-import Login from "./pages/Login"
+import Auth from "./pages/Auth"
 
 export default function App() {
   const router = createBrowserRouter([
@@ -10,8 +10,8 @@ export default function App() {
       element: <Home />
     },
     {
-      path: "/login",
-      element: <Login />
+      path: "/auth/:authtype",
+      element: <Auth />
     }
   ])
 

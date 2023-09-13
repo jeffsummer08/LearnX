@@ -1,4 +1,5 @@
 import { Navbar, NavbarBrand, NavbarContent, Button, NavbarItem, Link, NavbarMenu, NavbarMenuToggle, NavbarMenuItem } from "@nextui-org/react"
+import { Link as LinkTo } from "react-router-dom"
 
 interface Props {
     login: boolean
@@ -11,11 +12,13 @@ export default function Nav(props: Props) {
                 <NavbarMenuToggle
                     className="md:hidden"
                 />
-                <NavbarBrand>
-                    {
-                        // TODO: Put Logo here
-                    }
-                    <p className="hidden text-inherit md:flex">LearnX</p>
+                <NavbarBrand unselectable="on">
+                    <LinkTo to="/">
+                        {
+                            // TODO: Put Logo here
+                        }
+                        <p className="hidden text-inherit md:flex">LearnX</p>
+                    </LinkTo>
                 </NavbarBrand>
             </NavbarContent>
             <NavbarContent justify="center" className="hidden md:flex">
@@ -30,7 +33,7 @@ export default function Nav(props: Props) {
             </NavbarContent>
             <NavbarContent justify="end">
                 <NavbarItem>
-                    <Button>
+                    <Button href={!props.login ? "/auth/login" : "/dashboard"}>
                         {!props.login ? "Login" : "Dashboard"}
                     </Button>
                 </NavbarItem>
