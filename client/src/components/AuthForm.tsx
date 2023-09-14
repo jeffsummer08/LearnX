@@ -1,5 +1,6 @@
 import { Input, Button } from "@nextui-org/react"
 import { ChangeEvent, useState } from "react"
+import axios from "axios"
 
 interface Props {
     type: string | undefined
@@ -117,8 +118,44 @@ export default function AuthForm(props: Props) {
         setLoading(true)
         const valid = validate()
         if (valid) {
-            console.log("valid")
-            setLoading(false)
+            setErrors({
+                firstname: {
+                    error: false,
+                    msg: ""
+                },
+                lastname: {
+                    error: false,
+                    msg: ""
+                },
+                email: {
+                    error: false,
+                    msg: ""
+                },
+                confirmemail: {
+                    error: false,
+                    msg: ""
+                },
+                password: {
+                    error: false,
+                    msg: ""
+                },
+                confirmpassword: {
+                    error: false,
+                    msg: ""
+                }
+            })
+            axios.post(`http://localhost:8080/auth/${props.type}`, {
+                firstname: values.firstname,
+                lastname: values.lastname,
+                email: values.email,
+                password: values.password
+            }).then(res => {
+                console.log(res.data)
+                setLoading(false)
+            }).catch(error => {
+                console.error(error)
+                setLoading(false)
+            })
         } else {
             setLoading(false)
         }
