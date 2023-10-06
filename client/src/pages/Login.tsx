@@ -1,16 +1,11 @@
 import AuthForm from "../components/AuthForm";
 import Nav from "../components/Nav";
 import Container from "../components/Container";
-import { useParams } from "react-router-dom"
 import Loading from "../components/Loading";
 import { useEffect, useState } from "react"
 
-export default function Auth() {
-    const { authtype } = useParams()
+export default function Login() {
     const [loading, setLoading] = useState<boolean>(true)
-    if (authtype !== "login" && authtype !== "signup") {
-        window.location.replace("/")
-    }
     useEffect(() => {
         setLoading(false)
     }, [])
@@ -20,7 +15,7 @@ export default function Auth() {
         return (
             <Container>
                 <Nav login={false} />
-                <AuthForm type={authtype}></AuthForm>
+                <AuthForm type="login"></AuthForm>
             </Container>
         )
     }

@@ -7,3 +7,9 @@
 html {
   font-family: 'Quicksand', sans-serif;
 }
+
+input[type=password]::-ms-reveal,
+input[type=password]::-ms-clear
+{
+    display: none;
+}

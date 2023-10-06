@@ -1,13 +1,18 @@
 import { Input, Button } from "@nextui-org/react"
 import { ChangeEvent, useState } from "react"
 import axios from "axios"
+import { Eye, EyeSlash } from "react-bootstrap-icons"
 
 interface Props {
-    type: string | undefined
+    type: "login" | "signup"
 }
 
 export default function AuthForm(props: Props) {
     const [loading, setLoading] = useState<boolean>(false)
+    const [isVisible, setIsVisible] = useState({
+        password: false,
+        confirmpassword: false
+    })
     const [values, setValues] = useState({
         firstname: "",
         lastname: "",
@@ -42,6 +47,12 @@ export default function AuthForm(props: Props) {
             msg: ""
         }
     })
+    function toggleVisibility(parameter: "password" | "confirmpassword") {
+        setIsVisible(prevState => ({
+            ...prevState,
+            [parameter]: !prevState[parameter]
+        }))
+    }
     function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: ChangeEvent<HTMLInputElement>) {
         setValues(prevState => ({
             ...prevState,
@@ -69,25 +80,25 @@ export default function AuthForm(props: Props) {
         if (props.type === "login") {
             if (values.email === "") {
                 valid = false
-                createError("email", "Field is empty")
+                createError("email", "Email is empty")
             }
             if (values.password === "") {
                 valid = false
-                createError("password", "Field is empty")
+                createError("password", "Password is empty")
             }
             return valid
         } else {
             if (values.firstname === "") {
                 valid = false
-                createError("firstname", "Field is empty")
+                createError("firstname", "First Name is empty")
             }
             if (values.lastname === "") {
                 valid = false
-                createError("lastname", "Field is empty")
+                createError("lastname", "Last Name is empty")
             }
             if (values.email === "") {
                 valid = false
-                createError("email", "Field is empty")
+                createError("email", "Email is empty")
             } else if (!values.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
                 valid = false
                 createError("email", "Email is invalid")
@@ -100,7 +111,7 @@ export default function AuthForm(props: Props) {
             }
             if (values.password === "") {
                 valid = false
-                createError("password", "Field is empty")
+                createError("password", "Password is empty")
             } else if (values.password.length < 8) {
                 valid = false
                 createError("password", "Password must be at least 8 characters long")
@@ -144,7 +155,7 @@ export default function AuthForm(props: Props) {
                     msg: ""
                 }
             })
-            axios.post(`http://localhost:8080/auth/${props.type}`, {
+            axios.post(`http://localhost:8080/${props.type}`, {
                 firstname: values.firstname,
                 lastname: values.lastname,
                 email: values.email,
@@ -172,8 +183,8 @@ export default function AuthForm(props: Props) {
                         onChange={(e) => {
                             handleChange("firstname", e)
                         }}
+                        isInvalid={errors.firstname.error}
                         errorMessage={errors.firstname.error ? errors.firstname.msg : ""}
-
 
                     />
                     <Input
@@ -183,6 +194,7 @@ export default function AuthForm(props: Props) {
                         onChange={(e) => {
                             handleChange("lastname", e)
                         }}
+                        isInvalid={errors.lastname.error}
                         errorMessage={errors.lastname.error ? errors.lastname.msg : ""}
                     />
                 </div>
@@ -193,7 +205,7 @@ export default function AuthForm(props: Props) {
                     onChange={(e) => {
                         handleChange("email", e)
                     }}
-                    isRequired
+                    isInvalid={errors.email.error}
                     errorMessage={errors.email.error ? errors.email.msg : ""}
                 />
                 <Input
@@ -204,28 +216,50 @@ export default function AuthForm(props: Props) {
                     onChange={(e) => {
                         handleChange("confirmemail", e)
                     }}
-                    isRequired
+                    isInvalid={errors.confirmemail.error}
                     errorMessage={errors.confirmemail.error ? errors.confirmemail.msg : ""}
                 />
                 <Input
-                    type="password"
+                    type={isVisible.password ? "text" : "password"}
                     label="Password"
                     variant="bordered"
                     onChange={(e) => {
                         handleChange("password", e)
                     }}
-                    isRequired
+                    endContent={
+                        <button className="focus:outline-none" type="button" onClick={() => {
+                            toggleVisibility("password")
+                        }}>
+                            {isVisible.password ? (
+                                <EyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                                <Eye className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                        </button>
+                    }
+                    isInvalid={errors.password.error}
                     errorMessage={errors.password.error ? errors.password.msg : ""}
                 />
                 <Input
-                    type="password"
+                    type={isVisible.confirmpassword ? "text" : "password"}
                     label="Confirm Password"
                     variant="bordered"
                     className={props.type === "login" ? "hidden" : ""}
                     onChange={(e) => {
                         handleChange("confirmpassword", e)
                     }}
-                    isRequired
+                    endContent={
+                        <button className="focus:outline-none" type="button" onClick={() => {
+                            toggleVisibility("confirmpassword")
+                        }}>
+                            {isVisible.confirmpassword ? (
+                                <EyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                                <Eye className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                        </button>
+                    }
+                    isInvalid={errors.confirmpassword.error}
                     errorMessage={errors.confirmpassword.error ? errors.confirmpassword.msg : ""}
                 />
                 <Button onPress={handleSubmit} className="w-full" color="primary" isLoading={loading}>
