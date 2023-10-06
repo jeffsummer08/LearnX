@@ -10,13 +10,14 @@ Start Commands:
 ```bash
 cd client
 npm run dev
-
+```
+```bash
 cd server
 npx nodemon index.ts
 ```
 
-**Deadline: November 1st**
+**Submit Deadline: January 15th**
 
-finish it quickly so we can push it out to people and start marketing
+Finish it quickly so we can push it out to people and start marketing
 
 Happy Coding!
