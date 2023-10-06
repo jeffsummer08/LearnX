@@ -20,9 +20,14 @@ export default function Nav(props: Props) {
                 <NavbarBrand unselectable="on">
                     <Link className="text-inherit" href="/">
                         {
-                            // TODO: Put Logo here
+                            <img
+                                src="/name.png"
+                                alt="Logo"
+                                width="150"
+                                height="75"
+                                className="hidden md:block"
+                            />
                         }
-                        <p className="hidden text-inherit md:flex">LearnX</p>
                     </Link>
                 </NavbarBrand>
             </NavbarContent>
