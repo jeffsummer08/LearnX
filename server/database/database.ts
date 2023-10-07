@@ -10,7 +10,12 @@ interface Database {
 const db = new Kysely<Database>({
     dialect: new PostgresDialect({
         pool: new Pool({
-            connectionString: process.env.DATABASE_URL,
+            database: '	bubble.db.elephantsql.com',
+            host: 'ogzxfpvy',
+            user: 'ogzxfpvy',
+            port: 5434,
+            max: 5,
+            password: '1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG'
         })
     }),
 })
