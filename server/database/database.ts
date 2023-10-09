@@ -4,18 +4,15 @@ import { Pool } from "pg"
 import "dotenv/config"
 
 interface Database {
-    Student: StudentTable
+    student: StudentTable
 }
 
+// I'm not bothering with env variables
 const db = new Kysely<Database>({
     dialect: new PostgresDialect({
         pool: new Pool({
-            database: '	bubble.db.elephantsql.com',
-            host: 'ogzxfpvy',
-            user: 'ogzxfpvy',
-            port: 5434,
-            max: 5,
-            password: '1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG'
+            connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
+            max: 5
         })
     }),
 })

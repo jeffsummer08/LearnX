@@ -1,4 +1,4 @@
-import { Generated, Selectable, Insertable, Updateable } from "kysely"
+import {ColumnType, Generated, Selectable, Insertable, Updateable } from "kysely"
 
 export interface StudentTable {
     id: Generated<number>
@@ -6,7 +6,8 @@ export interface StudentTable {
     email: string
     passwordHash: string
     salt: string
-    classes: { id: number, progress: number }[]
+    completedLessons: number[]
+    created_at: ColumnType<Date, String | undefined, never>
 }
 
 export type Student = Selectable<StudentTable>
