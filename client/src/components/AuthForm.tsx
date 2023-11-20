@@ -1,6 +1,6 @@
 import { Input, Button } from "@nextui-org/react"
 import { ChangeEvent, useState } from "react"
-import axios from "axios"
+import client from "./instance"
 import { Eye, EyeSlash } from "react-bootstrap-icons"
 
 interface Props {
@@ -155,7 +155,7 @@ export default function AuthForm(props: Props) {
                     msg: ""
                 }
             })
-            axios.post(`http://localhost:8080/${props.type}`, {
+            client.post(`/${props.type}`, {
                 firstname: values.firstname,
                 lastname: values.lastname,
                 email: values.email,
@@ -262,7 +262,7 @@ export default function AuthForm(props: Props) {
                     isInvalid={errors.confirmpassword.error}
                     errorMessage={errors.confirmpassword.error ? errors.confirmpassword.msg : ""}
                 />
-                <Button onPress={handleSubmit} className="w-full" color="primary" isLoading={loading}>
+                <Button onClick={handleSubmit} className="w-full" color="primary" isLoading={loading}>
                     {loading ? "" : "Submit"}
                 </Button>
             </div>

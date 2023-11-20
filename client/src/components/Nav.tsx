@@ -18,16 +18,13 @@ export default function Nav(props: Props) {
                     className="md:hidden"
                 />
                 <NavbarBrand unselectable="on">
-                    <Link className="text-inherit" href="/">
-                        {
-                            <img
-                                src="/name.png"
-                                alt="Logo"
-                                width="150"
-                                height="75"
-                                className="hidden md:block"
-                            />
-                        }
+                    <Link href="/">
+                        <img
+                            src="/name.png"
+                            alt="Logo"
+                            width="150"
+                            height="75"
+                        />
                     </Link>
                 </NavbarBrand>
             </NavbarContent>
@@ -42,7 +39,11 @@ export default function Nav(props: Props) {
             </NavbarContent>
             <NavbarContent justify="end">
                 <NavbarItem>
-                    <Button href={!props.login ? "/auth/login" : "/dashboard"}>
+                    <Button 
+                        color="primary" 
+                        as={Link}
+                        href={props.login ? "/dashboard" : "/login"}
+                    >
                         {!props.login ? "Login" : "Dashboard"}
                     </Button>
                 </NavbarItem>
