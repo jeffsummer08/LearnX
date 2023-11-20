@@ -1,15 +1,20 @@
 import {ColumnType, Generated, Selectable, Insertable, Updateable } from "kysely"
 
-export interface StudentTable {
+export interface UserTable {
     id: Generated<number>
     name: string
     email: string
     passwordHash: string
     salt: string
+    timestampCreated: ColumnType<Date, String | undefined, never>
     completedLessons: number[]
-    created_at: ColumnType<Date, String | undefined, never>
+    classes: number[]
+    isValid: boolean
+    isTeacher: boolean
+    isStaff: boolean
+    isSuperuser: boolean
 }
 
-export type Student = Selectable<StudentTable>
-export type NewStudent = Insertable<StudentTable>
-export type UpdateStudent = Updateable<StudentTable>
+export type User = Selectable<UserTable>
+export type NewUser = Insertable<UserTable>
+export type UpdateUser = Updateable<UserTable>
