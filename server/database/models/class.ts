@@ -5,7 +5,7 @@ export interface ClassTable {
     name: string
     teacher: number
     students: number[]
-    timestampCreated: ColumnType<Date, String | undefined, never>
+    timestampCreated: Generated<Date>
 
 }
 

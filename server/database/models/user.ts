@@ -6,13 +6,13 @@ export interface UserTable {
     email: string
     passwordHash: string
     salt: string
-    timestampCreated: ColumnType<Date, String | undefined, never>
-    completedLessons: number[]
-    classes: number[]
-    isValid: boolean
-    isTeacher: boolean
-    isStaff: boolean
-    isSuperuser: boolean
+    timestampCreated: Generated<Date>
+    completedLessons: Generated<number[]>
+    classes: Generated<number[]>
+    isTeacher: Generated<Boolean>
+    isStaff: Generated<Boolean>
+    isSuperuser: Generated<Boolean>
+    isValid: Generated<Boolean>
 }
 
 export type User = Selectable<UserTable>

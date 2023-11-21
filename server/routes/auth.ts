@@ -1,43 +1,40 @@
 import express, {Request, Response} from "express"
 import db from "../database/database"
 import {User, NewUser, UpdateUser} from "../database/models/user"
+import { InsertResult } from "kysely";
+import crypto from "crypto";
+import util from "util";
 
 const router = express.Router();
-const crypto = require("crypto");
+const pbkdf2 = util.promisify(crypto.pbkdf2);
 
-router.post("/login", (req: Request, res: Response) => {
-    let query = db.selectFrom('users').where('name', '=', 'testUser')
-    query.selectAll().execute().then(output => {
-        res.json({
-            data: output
-        })
-    });
+router.post("/login", async (req: Request, res: Response) => {
     
 })
 
-router.post("/signup", (req: Request, res: Response) => {
+router.post("/signup", async (req: Request, res: Response) => {
     console.log(req.body);
-    let salt:Buffer = crypto.randomBytes(16);
-    //iterations set to 15000
-    //can increase up to ~200k for better security
-    //can decrease to be faster if server is dying
-    crypto.pbkdf2(req.body["password"], salt, 15000, 64, "sha512", (err: Error, derivedKey: Buffer) => {
-        if(err != null){
-            console.log("Error hashing password");
-            console.log(err.message);
-            res.json({
-                error: "Unable to create new user at this time"
-            })
-        }
-        else{
-            console.log(derivedKey.toString("hex"));
-            console.log(salt.toString("hex"));
-            res.json({
-                error:""
-            })
-        }
-    })
-    
+    try{
+        const salt:Buffer = crypto.randomBytes(16);
+        //iterations set to 15000
+        //can increase up to ~200k for better security
+        //can decrease to be faster if server is dying
+        const passwordHash = await pbkdf2(req.body["password"], salt, 15000, 64, "sha512");
+            
+        const val = await db.insertInto('users').values(<NewUser> {
+            name: req.body['username'],
+            email: req.body['email'],
+            passwordHash: passwordHash.toString('hex'),
+            salt: salt.toString('hex')
+        }).executeTakeFirst()
+        
+        res.sendStatus(200);
+        console.log(val)
+    }
+    catch(err){
+        res.status(500).send("Unable to create new user at this time");
+        console.log(err);
+    };
 })
 
 router.get("/test", (req: Request, res: Response) => {

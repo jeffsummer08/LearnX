@@ -14,15 +14,20 @@ export default function AuthForm(props: Props) {
         confirmpassword: false
     })
     const [values, setValues] = useState({
-        username: "",
+        firstname: "",
+        lastname: "",
         email: "",
         confirmemail: "",
         password: "",
         confirmpassword: ""
     })
     const [errors, setErrors] = useState({
-        username: {
+        firstname: {
             error: false,
+            msg: ""
+        },
+        lastname: {
+            error:false,
             msg: ""
         },
         email: {
@@ -48,7 +53,7 @@ export default function AuthForm(props: Props) {
             [parameter]: !prevState[parameter]
         }))
     }
-    function handleChange(parameter: "username" | "email" | "confirmemail" | "password" | "confirmpassword", e: ChangeEvent<HTMLInputElement>) {
+    function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: ChangeEvent<HTMLInputElement>) {
         setValues(prevState => ({
             ...prevState,
             [parameter]: e.target.value
@@ -61,7 +66,7 @@ export default function AuthForm(props: Props) {
             }
         }))
     }
-    function createError(parameter: "username" | "email" | "confirmemail" | "password" | "confirmpassword", errorMsg: string) {
+    function createError(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", errorMsg: string) {
         setErrors(prevState => ({
             ...prevState,
             [parameter]: {
@@ -83,9 +88,13 @@ export default function AuthForm(props: Props) {
             }
             return valid
         } else {
-            if (values.username === "") {
+            if (values.firstname === "") {
                 valid = false
-                createError("username", "Username is empty")
+                createError("firstname", "First Name is empty")
+            }
+            if (values.lastname === "") {
+                valid = false;
+                createError("lastname", "Last Name is empty")
             }
             if (values.email === "") {
                 valid = false
@@ -121,7 +130,11 @@ export default function AuthForm(props: Props) {
         const valid = validate()
         if (valid) {
             setErrors({
-                username: {
+                firstname: {
+                    error: false,
+                    msg: ""
+                },
+                lastname: {
                     error: false,
                     msg: ""
                 },
@@ -143,7 +156,8 @@ export default function AuthForm(props: Props) {
                 }
             })
             client.post(`/auth/${props.type}`, {
-                username: values.username,
+                firstname: values.firstname,
+                lastname: values.lastname,
                 email: values.email,
                 password: values.password
             }).then(res => {
@@ -161,7 +175,7 @@ export default function AuthForm(props: Props) {
         <div className="flex grow items-center justify-center w-full h-full">
             <div className="w-5/6 lg:w-1/2 flex flex-col gap-y-7 items-center">
                 <h1 className="font-normal text-3xl">{props.type === "login" ? "Login" : "Sign Up"}</h1>
-                {/* <div className={`flex gap-x-5 w-full ${props.type === "login" ? "hidden" : ""}`}>
+                <div className={`flex gap-x-5 w-full ${props.type === "login" ? "hidden" : ""}`}>
                     <Input
                         type="text"
                         label="First Name"
@@ -183,15 +197,7 @@ export default function AuthForm(props: Props) {
                         isInvalid={errors.lastname.error}
                         errorMessage={errors.lastname.error ? errors.lastname.msg : ""}
                     />
-                </div> */}
-                <Input
-                    type="username"
-                    label="Username"
-                    variant="bordered"
-                    onChange={(e) => handleChange("username", e)}
-                    isInvalid={errors.username.error}
-                    errorMessage = {errors.username.error ? errors.username.msg : ""}
-                />
+                </div>
                 <Input
                     type="email"
                     label="Email"
