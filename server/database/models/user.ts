@@ -2,7 +2,8 @@ import {ColumnType, Generated, Selectable, Insertable, Updateable } from "kysely
 
 export interface UserTable {
     id: Generated<number>
-    name: string
+    firstname: string
+    lastname: string
     email: string
     passwordHash: string
     salt: string
