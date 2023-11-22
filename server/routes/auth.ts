@@ -4,6 +4,7 @@ import {User, NewUser, UpdateUser} from "../database/models/user"
 import { InsertResult } from "kysely"
 import crypto from "crypto"
 import util from "util"
+import session from "express-session"
 
 const router = express.Router()
 const pbkdf2 = util.promisify(crypto.pbkdf2)
@@ -37,7 +38,7 @@ router.post("/login", async (req: Request, res: Response) => {
         }
         if(!authenticated){
             res.status(200).json({
-                error: false,
+                error: true,
                 msg: "Email and password combination does not exist"
             })
             console.log("Failed authentication attempt")            
