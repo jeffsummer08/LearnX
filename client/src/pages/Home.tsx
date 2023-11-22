@@ -1,5 +1,6 @@
-import Nav from "../components/Nav";
-import Container from "../components/Container";
+import Nav from "../components/Nav"
+import Container from "../components/Container"
+import "../components/animations/slideIn.css"
 
 export default function Home() {
     return (
@@ -7,7 +8,7 @@ export default function Home() {
             <Container>
                 <Nav login={true}></Nav>
                 <div className="flex grow flex-col items-center justify-center">
-                    <p className="text-2xl">Test</p>
+                    <p className="text-2xl slideIn">Test</p>
                 </div>
             </Container>
         </>

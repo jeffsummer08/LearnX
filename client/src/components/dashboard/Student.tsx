@@ -1,4 +1,4 @@
-import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalHeader, ModalContent, useDisclosure, ModalFooter } from "@nextui-org/react"
+import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider } from "@nextui-org/react"
 import Container from "../Container"
 import Nav from "../Nav"
 import { PlusCircleFill } from "react-bootstrap-icons"
@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import Loading from "../Loading"
 
 export default function StudentDashboard() {
-    const { isOpen, onOpen, onClose } = useDisclosure()
+    const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const [code, setCode] = useState<string>("")
     const [loading, setLoading] = useState<boolean>(true)
     const [joining, setJoining] = useState<boolean>(false)
@@ -48,25 +48,30 @@ export default function StudentDashboard() {
                 <Nav login={true}></Nav>
                 <div className="w-full grow">
                     <div aria-label="side-menu" className="hidden h-full md:flex md:w-1/5 md:justify-center border border-r-gray-200">
-                        <div className="w-[95%] mt-5">
-                            Your Classes
+                        <div className="w-5/6 mt-5 gap-y-5 flex flex-col items-start">
+                            <h1 className="text-xl">Your Classes</h1>
                             {
                                 classes.map((item, index) => (
-                                    <Button>
+                                    <h1 className="font-bold select-none cursor-pointer" onClick={() => {
+                                        setActive(index)
+                                    }} style={{ color: active === index ? "#006FEE" : "inherit" }}>
                                         {item.name}
-                                    </Button>
+                                    </h1>
                                 ))
                             }
-                            <Button onClick={onOpen}>Add new class</Button>
+                            <Divider />
+                            <Button onClick={onOpen} className="w-full" color="primary">
+                                <PlusCircleFill />
+                                Add new class
+                            </Button>
                         </div>
                     </div>
                 </div>
-                <Modal isOpen={isOpen} onClose={onClose}>
+                <Modal isOpen={isOpen} onClose={onOpenChange} isDismissable={!joining} hideCloseButton={joining}>
                     <ModalContent>
-                        {(onClose) => (
+                        {(_onClose) => (
                             <>
-                                <ModalHeader> </ModalHeader>
-                                <ModalBody>
+                                <ModalBody className="pt-7 pb-7">
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="text-2xl">Enter Class Code</span>
                                         <input value={code} onChange={(e) => {
@@ -87,7 +92,6 @@ export default function StudentDashboard() {
                                         setJoining(true)
                                     }}>{!joining && "Join Class"}</Button>
                                 </ModalBody>
-                                <ModalFooter></ModalFooter>
                             </>
                         )}
                     </ModalContent>

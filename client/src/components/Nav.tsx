@@ -1,4 +1,5 @@
-import { Navbar, NavbarBrand, NavbarContent, Button, NavbarItem, Link, NavbarMenu, NavbarMenuToggle, NavbarMenuItem } from "@nextui-org/react"
+import { Navbar, NavbarBrand, NavbarContent, Button, NavbarItem, NavbarMenu, NavbarMenuToggle, NavbarMenuItem } from "@nextui-org/react"
+import { Link } from "react-router-dom"
 
 interface Props {
     login: boolean
@@ -18,7 +19,7 @@ export default function Nav(props: Props) {
                     className="md:hidden"
                 />
                 <NavbarBrand unselectable="on">
-                    <Link href="/">
+                    <Link to="/">
                         <img
                             src="/name.png"
                             alt="Logo"
@@ -32,24 +33,24 @@ export default function Nav(props: Props) {
                 {
                     links.map((link, index) => (
                         <NavbarItem key={index}>
-                            <Link href={link.href}>{link.name}</Link>
+                            <Link to={link.href}>{link.name}</Link>
                         </NavbarItem>
                     ))
                 }
             </NavbarContent>
             <NavbarContent justify="end">
                 <NavbarItem>
-                    <Button 
-                        color="primary" 
-                        as={Link}
-                        href={props.login ? "/dashboard" : "/login"}
-                    >
-                        {!props.login ? "Login" : "Dashboard"}
-                    </Button>
+                        <Button
+                            color="primary"
+                            as={Link}
+                            to={props.login ? "/dashboard" : "/login"}
+                        >
+                            {!props.login ? "Login" : "Dashboard"}
+                        </Button>
                 </NavbarItem>
             </NavbarContent>
             <NavbarMenu>
-                <NavbarMenuItem><Link>Test</Link></NavbarMenuItem>
+                <NavbarMenuItem><Link to="/">Test</Link></NavbarMenuItem>
             </NavbarMenu>
         </Navbar>
     )
