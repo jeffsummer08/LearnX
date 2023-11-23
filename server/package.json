@@ -8,6 +8,11 @@
     "kysely": "^0.26.3",
     "pg": "^8.11.3"
   },
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "npx nodemon index.ts",
+    "build": "npx tsc"
+  },
   "devDependencies": {
     "@types/body-parser": "^1.19.2",
     "@types/cors": "^2.8.14",

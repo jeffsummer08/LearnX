@@ -13,7 +13,7 @@ npm run dev
 ```
 ```bash
 cd server
-npx nodemon index.ts
+npx run dev
 ```
 
 **Submit Deadline: January 15th**

@@ -52,7 +52,7 @@ export default function StudentDashboard() {
                             <h1 className="text-xl">Your Classes</h1>
                             {
                                 classes.map((item, index) => (
-                                    <h1 className="font-bold select-none cursor-pointer" onClick={() => {
+                                    <h1 className="font-bold select-none cursor-pointer" key={index} onClick={() => {
                                         setActive(index)
                                     }} style={{ color: active === index ? "#006FEE" : "inherit" }}>
                                         {item.name}
@@ -67,7 +67,10 @@ export default function StudentDashboard() {
                         </div>
                     </div>
                 </div>
-                <Modal isOpen={isOpen} onClose={onOpenChange} isDismissable={!joining} hideCloseButton={joining}>
+                <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={() => {
+                    setCode("")
+                    setJoining(false)
+                }} isDismissable={!joining} hideCloseButton={joining}>
                     <ModalContent>
                         {(_onClose) => (
                             <>
@@ -85,7 +88,7 @@ export default function StudentDashboard() {
                                         }} className={`w-full border-2 ${error.error ? "border-[#f31260]" : "border-gray-300"} rounded-lg p-3 mt-3 text-center focus:outline-none`} />
                                         <span className={!error.error ? "hidden" : "text-sm self-start text-[#f31260]"}>{error.msg}</span>
                                     </div>
-                                    <Button className="w-full mt-3" isLoading={joining} isDisabled={code.length !== 6 || joining} color="primary" onClick={() => {
+                                    <Button className="w-full mt-1" isLoading={joining} isDisabled={code.length !== 6 || joining} color="primary" onClick={() => {
                                         {
                                             // handleJoin()
                                         }
