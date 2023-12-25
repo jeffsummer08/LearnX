@@ -5,7 +5,6 @@ import cors from "cors"
 import "dotenv/config"
 import { Pool } from "pg"
 import connectPgSimple from "connect-pg-simple"
-import db from "./database/database"
 
 const app: Express = express()
 

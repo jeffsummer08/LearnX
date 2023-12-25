@@ -20,12 +20,12 @@ router.post("/login", async (req: Request, res: Response) => {
         const emailInput = req.body["email"]
         const passwordInput = req.body["password"]
         console.log(emailInput + " " + passwordInput);
-        const emailQuery = await db.selectFrom("users").select(["salt", "passwordHash", "isValid"]).where("email", "=", emailInput).execute();
+        const query = await db.selectFrom("users").select(["salt", "passwordHash", "isValid", "isTeacher", "isStaff", "isSuperuser"]).where("email", "=", emailInput).execute();
         let authenticated = false;
-        if(emailQuery.length === 1){
-            const salt = emailQuery[0]["salt"]
-            const passwordHash = emailQuery[0]["passwordHash"]
-            const isValid = emailQuery[0]["isValid"]
+        if(query.length === 1){
+            const salt = query[0]["salt"]
+            const passwordHash = query[0]["passwordHash"]
+            const isValid = query[0]["isValid"]
             const attemptedHash = await hashPassword(passwordInput, salt)
             console.log("Found email in db " + salt + " " + passwordHash)
             console.log(attemptedHash)
@@ -34,6 +34,11 @@ router.post("/login", async (req: Request, res: Response) => {
                 //authenticate user
                 //express session
                 if(isValid){
+                    req.session.isAuthenticated = true
+                    req.session.isStaff = !!query[0]["isStaff"]
+                    req.session.isTeacher = !!query[0]["isTeacher"]
+                    req.session.isSuperuser = !!query[0]["isSuperuser"]
+
                     res.status(200).json({
                         error: false,
                         msg: "Successfully authenticated user"
@@ -92,6 +97,10 @@ router.post("/signup", async (req: Request, res: Response) => {
                 error: false,
                 msg: "Successfully created new user!"
             })
+            req.session.isAuthenticated = true
+            req.session.isStaff = false
+            req.session.isTeacher = false
+            req.session.isSuperuser = false
             console.log("Successfully created new user!")
             console.log(val)
         }
