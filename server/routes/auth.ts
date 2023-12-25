@@ -9,6 +9,9 @@ import session from "express-session"
 const router = express.Router()
 const pbkdf2 = util.promisify(crypto.pbkdf2)
 
+//iterations set to 15000
+//can increase up to ~200k for better security
+//can decrease to be faster if server is dying
 async function hashPassword(passwordRaw: string, salt: string){
     return (await pbkdf2(passwordRaw, salt, 15000, 64, "sha512")).toString("hex")
 }
@@ -17,11 +20,12 @@ router.post("/login", async (req: Request, res: Response) => {
         const emailInput = req.body["email"]
         const passwordInput = req.body["password"]
         console.log(emailInput + " " + passwordInput);
-        const emailQuery = await db.selectFrom("users").select(["salt", "passwordHash"]).where("email", "=", emailInput).execute();
+        const emailQuery = await db.selectFrom("users").select(["salt", "passwordHash", "isValid"]).where("email", "=", emailInput).execute();
         let authenticated = false;
         if(emailQuery.length === 1){
             const salt = emailQuery[0]["salt"]
             const passwordHash = emailQuery[0]["passwordHash"]
+            const isValid = emailQuery[0]["isValid"]
             const attemptedHash = await hashPassword(passwordInput, salt)
             console.log("Found email in db " + salt + " " + passwordHash)
             console.log(attemptedHash)
@@ -29,15 +33,25 @@ router.post("/login", async (req: Request, res: Response) => {
                 authenticated = true;
                 //authenticate user
                 //express session
-                res.status(200).json({
-                    error: false,
-                    msg: "Successfully authenticated user"
-                })
-                console.log("Successfully authenticated user")
+                if(isValid){
+                    res.status(200).json({
+                        error: false,
+                        msg: "Successfully authenticated user"
+                    })
+                    console.log("Successfully authenticated user")
+                }
+                else{
+                    res.status(403).json({
+                        error: true,
+                        msg: "That account has been deactivated"
+                    })
+                    console.log("Invalidated user attempted authorization")
+                }
+                
             }
         }
         if(!authenticated){
-            res.status(200).json({
+            res.status(401).json({
                 error: true,
                 msg: "Email and password combination does not exist"
             })
@@ -65,9 +79,6 @@ router.post("/signup", async (req: Request, res: Response) => {
         }
         else{
             const salt = crypto.randomBytes(16).toString("hex")
-            //iterations set to 15000
-            //can increase up to ~200k for better security
-            //can decrease to be faster if server is dying
             const passwordHash = await hashPassword(req.body["password"], salt)
                 
             const val = await db.insertInto('users').values(<NewUser> {
@@ -77,8 +88,7 @@ router.post("/signup", async (req: Request, res: Response) => {
                 passwordHash: passwordHash,
                 salt: salt
             }).executeTakeFirst()
-            
-            res.status(200).json({
+            res.status(201).json({
                 error: false,
                 msg: "Successfully created new user!"
             })
@@ -91,8 +101,23 @@ router.post("/signup", async (req: Request, res: Response) => {
             error: true,
             msg: "Unable to create new user at this time"
         })
-        console.log(err)
+        console.log(err);
     }
+})
+
+router.get("/logout", async (req: Request, res: Response) => {
+    req.session.destroy((err: any) => {
+        if(err){
+            res.status(500).json({
+                error: true,
+                msg: "Unable to logout users at this time"
+            })
+            console.log(err);
+        }
+        else{
+            res.redirect("/")
+        }
+    });
 })
 
 router.get("/test", (req: Request, res: Response) => {
