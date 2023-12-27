@@ -1,6 +1,6 @@
 import Nav from "../components/Nav"
 import Container from "../components/Container"
-import "../components/animations/slideIn.css"
+//import "../components/animations/slideIn.css"
 
 export default function Home() {
     return (

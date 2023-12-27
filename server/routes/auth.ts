@@ -31,8 +31,6 @@ router.post("/login", async (req: Request, res: Response) => {
             console.log(attemptedHash)
             if(attemptedHash === passwordHash){
                 authenticated = true;
-                //authenticate user
-                //express session
                 if(isValid){
                     req.session.isAuthenticated = true
                     req.session.isStaff = !!query[0]["isStaff"]
@@ -40,14 +38,12 @@ router.post("/login", async (req: Request, res: Response) => {
                     req.session.isSuperuser = !!query[0]["isSuperuser"]
 
                     res.status(200).json({
-                        error: false,
                         msg: "Successfully authenticated user"
                     })
                     console.log("Successfully authenticated user")
                 }
                 else{
                     res.status(403).json({
-                        error: true,
                         msg: "That account has been deactivated"
                     })
                     console.log("Invalidated user attempted authorization")
@@ -57,7 +53,6 @@ router.post("/login", async (req: Request, res: Response) => {
         }
         if(!authenticated){
             res.status(401).json({
-                error: true,
                 msg: "Email and password combination does not exist"
             })
             console.log("Failed authentication attempt")            
@@ -65,7 +60,6 @@ router.post("/login", async (req: Request, res: Response) => {
     }
     catch(err){
         res.status(500).json({
-            error: true,
             msg: "Unable to authenticate users at this time"
         })
         console.log(err)
@@ -77,8 +71,7 @@ router.post("/signup", async (req: Request, res: Response) => {
     try{
         const emailCheck = await db.selectFrom("users").select("id").where("email", "=", req.body["email"]).execute();
         if(emailCheck.length >= 1){
-            res.status(200).json({
-                error: true,
+            res.status(401).json({
                 msg: "Email is already in use"
             })
         }
@@ -94,7 +87,6 @@ router.post("/signup", async (req: Request, res: Response) => {
                 salt: salt
             }).executeTakeFirst()
             res.status(201).json({
-                error: false,
                 msg: "Successfully created new user!"
             })
             req.session.isAuthenticated = true
@@ -107,7 +99,6 @@ router.post("/signup", async (req: Request, res: Response) => {
     }
     catch(err){
         res.status(500).json({
-            error: true,
             msg: "Unable to create new user at this time"
         })
         console.log(err);
@@ -118,7 +109,6 @@ router.get("/logout", async (req: Request, res: Response) => {
     req.session.destroy((err: any) => {
         if(err){
             res.status(500).json({
-                error: true,
                 msg: "Unable to logout users at this time"
             })
             console.log(err);
@@ -129,7 +119,7 @@ router.get("/logout", async (req: Request, res: Response) => {
     });
 })
 
-router.get("/test", (req: Request, res: Response) => {
+router.post("/test", (req: Request, res: Response) => {
     res.json({
         testing: "testing"
     })

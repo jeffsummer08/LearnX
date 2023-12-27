@@ -1,6 +1,7 @@
 import { UserTable } from "./models/user";
 import { ClassTable } from "./models/class";
 import { Kysely, PostgresDialect } from "kysely"
+import { Pool } from "pg";
 import { dbPool } from "..";
 import "dotenv/config"
 
@@ -12,7 +13,10 @@ interface Database {
 // I'm not bothering with env variables
 const db = new Kysely<Database>({
     dialect: new PostgresDialect({
-        pool: dbPool
+        pool: new Pool({
+            connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
+            max: 2
+        })
     }),
 })
 
