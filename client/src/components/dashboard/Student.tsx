@@ -15,6 +15,9 @@ export default function StudentDashboard() {
         error: false,
         msg: ""
     })
+    const handleRefresh = (code: number) => {
+
+    }
     useEffect(() => {
         setLoading(false)
         const timeout = setTimeout(() => {
@@ -25,15 +28,18 @@ export default function StudentDashboard() {
     const classes = [
         {
             teacher: "KYLE MOTLEY",
-            name: "Advanced Cybersecurity"
+            name: "Advanced Cybersecurity",
+            code: "ABC123"
         },
         {
             teacher: "SARAH JONES",
-            name: "Basic Computer Safety"
+            name: "Basic Computer Safety",
+            code: "DEF456"
         },
         {
             teacher: "DARSH PODDAR",
-            name: "Intro to Cybersecurity"
+            name: "Intro to Cybersecurity",
+            code: "GHI789"
         }
     ]
     if (loading) {
@@ -52,7 +58,7 @@ export default function StudentDashboard() {
                             <h1 className="text-xl">Your Classes</h1>
                             {
                                 classes.map((item, index) => (
-                                    <h1 className="font-bold select-none cursor-pointer" key={index} onClick={() => {
+                                    <h1 className="font-bold select-none cursor-pointer" key={item.code} onClick={() => {
                                         setActive(index)
                                     }} style={{ color: active === index ? "#006FEE" : "inherit" }}>
                                         {item.name}

@@ -11,7 +11,7 @@ export default function App() {
     {
       path: "/",
       element: <Home />,
-      errorElement: <Error />
+      errorElement: <Error type="404" />
     },
     {
       path: "/login",
@@ -24,6 +24,10 @@ export default function App() {
     {
       path: "/dashboard",
       element: <Dashboard />
+    },
+    {
+      path: "/error",
+      element: <Error type="500" />
     }
   ])
 
