@@ -2,7 +2,6 @@ import { UserTable } from "./models/user";
 import { ClassTable } from "./models/class";
 import { Kysely, PostgresDialect } from "kysely"
 import { Pool } from "pg";
-import { dbPool } from "..";
 import "dotenv/config"
 
 interface Database {

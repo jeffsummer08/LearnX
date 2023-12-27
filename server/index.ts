@@ -40,5 +40,3 @@ app.use('/auth', authRoutes)
 app.listen(8080, () => {
     console.log("Server on http://localhost:8080")
 })
-
-export { dbPool }
