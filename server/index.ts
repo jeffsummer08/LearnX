@@ -5,14 +5,19 @@ import cors from "cors"
 import "dotenv/config"
 import { Pool } from "pg"
 import connectPgSimple from "connect-pg-simple"
+import { SessionOptions } from "http2"
 
 const app: Express = express()
 
 const dbPool = new Pool({
     connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
-    max: 4
+    max: 2
 })
-app.use(cors())
+app.use(cors({
+    origin: true,
+    optionsSuccessStatus: 200,
+    credentials: true
+}))
 app.use(express.json())
 
 const pgSession = connectPgSimple(session)
@@ -27,7 +32,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {maxAge: 1000 * 3600 * 24}, //one day in ms
     resave: false,
-    rolling: true,
+    rolling: true
 }))
 
 app.use('/auth', authRoutes)
@@ -35,5 +40,3 @@ app.use('/auth', authRoutes)
 app.listen(8080, () => {
     console.log("Server on http://localhost:8080")
 })
-
-export { dbPool }

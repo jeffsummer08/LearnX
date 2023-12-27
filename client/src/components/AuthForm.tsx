@@ -164,31 +164,24 @@ export default function AuthForm(props: Props) {
                 lastname: values.lastname,
                 email: values.email,
                 password: values.password
-            }).then(res => {
-                if (res.status === 200) {
-                    console.log(res.data.error)
-                    if (res.data.error) {
-                        setAuthError({
-                            error: true,
-                            msg: res.data.msg
-                        })
-                    } else {
-                        window.location.replace("/dashboard")
-                    }
-                } else if (res.status === 500) {
-                    setAuthError({
-                        error: true,
-                        msg: res.data.msg
-                    })
-                } else {
-                    setAuthError({
-                        error: true,
-                        msg: "An unknown error occurred."
-                    })
-                }
+            }, { withCredentials: true }).then(res => {
+                console.log(res.data.msg)
+                window.location.replace("/dashboard")
                 setLoading(false)
             }).catch(error => {
-                console.error(error)
+                if(error.response.data.msg){
+                    setAuthError({
+                        error: true,
+                        msg: error.response.data.msg
+                    })
+                }
+                else{
+                    setAuthError({
+                        error: true,
+                        msg: "An unknown error occured"
+                    })
+                    console.error(error)
+                }
                 setLoading(false)
             })
         } else {
