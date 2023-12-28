@@ -4,11 +4,12 @@ import Nav from "../Nav"
 import { PlusCircleFill } from "react-bootstrap-icons"
 import { useState, useEffect } from "react"
 import Loading from "../Loading"
+import getUser from "../functions/GetUser"
 
 export default function StudentDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const [code, setCode] = useState<string>("")
-    const [loading, setLoading] = useState<boolean>(true)
+    const [loading, setLoading] = useState(true)
     const [joining, setJoining] = useState<boolean>(false)
     const [active, setActive] = useState<number>(0)
     const [error, setError] = useState({
@@ -19,12 +20,7 @@ export default function StudentDashboard() {
 
     }
     useEffect(() => {
-        setLoading(false)
-        const timeout = setTimeout(() => {
-            console.log("This is taking a while.")
-        }, 10000)
-        clearTimeout(timeout)
-    }, [])
+    }, [loading])
     const classes = [
         {
             teacher: "KYLE MOTLEY",
@@ -50,8 +46,7 @@ export default function StudentDashboard() {
         )
     } else {
         return (
-            <Container>
-                <Nav login={true}></Nav>
+            <>
                 <div className="w-full grow">
                     <div aria-label="side-menu" className="hidden h-full md:flex md:w-1/5 md:justify-center border border-r-gray-200">
                         <div className="w-5/6 mt-5 gap-y-5 flex flex-col items-start">
@@ -105,7 +100,7 @@ export default function StudentDashboard() {
                         )}
                     </ModalContent>
                 </Modal>
-            </Container>
+            </>
         )
     }
 }

@@ -1,7 +1,9 @@
 import { Input, Button, Card, CardBody } from "@nextui-org/react"
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, useState, useEffect } from "react"
+import getUser from "./functions/GetUser"
 import client from "./instance"
 import { Eye, EyeSlash, ExclamationCircle } from "react-bootstrap-icons"
+import Loading from "./Loading"
 
 interface Props {
     type: "login" | "signup"
@@ -9,6 +11,7 @@ interface Props {
 
 export default function AuthForm(props: Props) {
     const [loading, setLoading] = useState<boolean>(false)
+    const [ready, setReady] = useState<boolean>(false)
     const [isVisible, setIsVisible] = useState({
         password: false,
         confirmpassword: false
@@ -51,6 +54,20 @@ export default function AuthForm(props: Props) {
         error: false,
         msg: ""
     })
+    useEffect(() => {
+        getUser().then((user) => {
+            console.log(user)
+            if (user.error) {
+                window.location.replace("/error")
+            } else {
+                if (user.isAuthenticated) {
+                    window.location.replace("/dashboard")
+                } else {
+                    setReady(true)
+                }
+            }
+        })
+    }, [])
     function toggleVisibility(parameter: "password" | "confirmpassword") {
         setIsVisible(prevState => ({
             ...prevState,
@@ -97,7 +114,7 @@ export default function AuthForm(props: Props) {
                 createError("firstname", "First Name is empty")
             }
             if (values.lastname.trim() === "") {
-                valid = false;
+                valid = false
                 createError("lastname", "Last Name is empty")
             }
             if (values.email.trim() === "") {
@@ -164,18 +181,18 @@ export default function AuthForm(props: Props) {
                 lastname: values.lastname,
                 email: values.email,
                 password: values.password
-            }, { withCredentials: true }).then(res => {
+            }).then(res => {
                 console.log(res.data.msg)
                 window.location.replace("/dashboard")
                 setLoading(false)
             }).catch(error => {
-                if(error.response.data.msg){
+                if (error.response.data.msg) {
                     setAuthError({
                         error: true,
                         msg: error.response.data.msg
                     })
                 }
-                else{
+                else {
                     setAuthError({
                         error: true,
                         msg: "An unknown error occured"
@@ -188,117 +205,121 @@ export default function AuthForm(props: Props) {
             setLoading(false)
         }
     }
-    return (
-        <div className="flex grow items-center justify-center w-full h-full">
-            <div className="w-5/6 lg:w-1/2 flex flex-col gap-y-7 items-center">
-                <h1 className="font-normal text-3xl">{props.type === "login" ? "Login" : "Sign Up"}</h1>
-                <Card className="w-full bg-red-500 text-white" style={{ display: authError.error ? "" : "none" }}>
-                    <CardBody>
-                        <span className="flex flex-row items-center gap-x-3">
-                            <ExclamationCircle size={20} />
-                            <p><b>Error:</b> {authError.msg}</p>
-                        </span>
-                    </CardBody>
-                </Card>
-                {
-                    props.type === "signup" ? (
-                        <div className="flex gap-x-5 w-full">
-                            <Input
-                                type="text"
-                                label="First Name"
-                                variant="bordered"
-                                onChange={(e: any) => {
-                                    handleChange("firstname", e)
-                                }}
-                                isInvalid={errors.firstname.error}
-                                errorMessage={errors.firstname.error ? errors.firstname.msg : ""}
+    if (ready) {
+        return (
+            <div className="flex grow items-center justify-center w-full h-full">
+                <div className="w-5/6 lg:w-1/2 flex flex-col gap-y-7 items-center">
+                    <h1 className="font-normal text-3xl">{props.type === "login" ? "Login" : "Sign Up"}</h1>
+                    <Card className="w-full bg-red-500 text-white" style={{ display: authError.error ? "" : "none" }}>
+                        <CardBody>
+                            <span className="flex flex-row items-center gap-x-3">
+                                <ExclamationCircle size={20} />
+                                <p><b>Error:</b> {authError.msg}</p>
+                            </span>
+                        </CardBody>
+                    </Card>
+                    {
+                        props.type === "signup" ? (
+                            <div className="flex gap-x-5 w-full">
+                                <Input
+                                    type="text"
+                                    label="First Name"
+                                    variant="bordered"
+                                    onChange={(e: any) => {
+                                        handleChange("firstname", e)
+                                    }}
+                                    isInvalid={errors.firstname.error}
+                                    errorMessage={errors.firstname.error ? errors.firstname.msg : ""}
 
-                            />
-                            <Input
-                                type="text"
-                                label="Last Name"
-                                variant="bordered"
-                                onChange={(e: any) => {
-                                    handleChange("lastname", e)
-                                }}
-                                isInvalid={errors.lastname.error}
-                                errorMessage={errors.lastname.error ? errors.lastname.msg : ""}
-                            />
-                        </div>
-                    ) : (
-                        <></>
-                    )
-                }
-                <Input
-                    type="email"
-                    label="Email"
-                    variant="bordered"
-                    onChange={(e: any) => handleChange("email", e)}
-                    isInvalid={errors.email.error}
-                    errorMessage={errors.email.error ? errors.email.msg : ""}
-                />
-                {
-                    props.type === "signup" ? (
-                        <Input
-                            type="email"
-                            label="Confirm Email"
-                            variant="bordered"
-                            onChange={(e: any) => handleChange("confirmemail", e)}
-                            isInvalid={errors.confirmemail.error}
-                            errorMessage={errors.confirmemail.error ? errors.confirmemail.msg : ""}
-                        />
-                    ) : (
-                        <></>
-                    )
-                }
-                <Input
-                    type={isVisible.password ? "text" : "password"}
-                    label="Password"
-                    variant="bordered"
-                    onChange={(e: any) => handleChange("password", e)}
-                    endContent={
-                        <button className="focus:outline-none" type="button" onClick={() => {
-                            toggleVisibility("password")
-                        }}>
-                            {isVisible.password ? (
-                                <EyeSlash className="text-2xl text-default-400 pointer-events-none" />
-                            ) : (
-                                <Eye className="text-2xl text-default-400 pointer-events-none" />
-                            )}
-                        </button>
+                                />
+                                <Input
+                                    type="text"
+                                    label="Last Name"
+                                    variant="bordered"
+                                    onChange={(e: any) => {
+                                        handleChange("lastname", e)
+                                    }}
+                                    isInvalid={errors.lastname.error}
+                                    errorMessage={errors.lastname.error ? errors.lastname.msg : ""}
+                                />
+                            </div>
+                        ) : (
+                            <></>
+                        )
                     }
-                    isInvalid={errors.password.error}
-                    errorMessage={errors.password.error ? errors.password.msg : ""}
-                />
-                {
-                    props.type === "signup" ? (
-                        <Input
-                            type={isVisible.confirmpassword ? "text" : "password"}
-                            label="Confirm Password"
-                            variant="bordered"
-                            onChange={(e: any) => handleChange("confirmpassword", e)}
-                            endContent={
-                                <button className="focus:outline-none" type="button" onClick={() => {
-                                    toggleVisibility("confirmpassword")
-                                }}>
-                                    {isVisible.confirmpassword ? (
-                                        <EyeSlash className="text-2xl text-default-400 pointer-events-none" />
-                                    ) : (
-                                        <Eye className="text-2xl text-default-400 pointer-events-none" />
-                                    )}
-                                </button>
-                            }
-                            isInvalid={errors.confirmpassword.error}
-                            errorMessage={errors.confirmpassword.error ? errors.confirmpassword.msg : ""}
-                        />
-                    ) : (
-                        <></>
-                    )
-                }
-                <Button onClick={handleSubmit} className="w-full" color="primary" isLoading={loading}>
-                    {loading ? "" : "Submit"}
-                </Button>
+                    <Input
+                        type="email"
+                        label="Email"
+                        variant="bordered"
+                        onChange={(e: any) => handleChange("email", e)}
+                        isInvalid={errors.email.error}
+                        errorMessage={errors.email.error ? errors.email.msg : ""}
+                    />
+                    {
+                        props.type === "signup" ? (
+                            <Input
+                                type="email"
+                                label="Confirm Email"
+                                variant="bordered"
+                                onChange={(e: any) => handleChange("confirmemail", e)}
+                                isInvalid={errors.confirmemail.error}
+                                errorMessage={errors.confirmemail.error ? errors.confirmemail.msg : ""}
+                            />
+                        ) : (
+                            <></>
+                        )
+                    }
+                    <Input
+                        type={isVisible.password ? "text" : "password"}
+                        label="Password"
+                        variant="bordered"
+                        onChange={(e: any) => handleChange("password", e)}
+                        endContent={
+                            <button className="focus:outline-none" type="button" onClick={() => {
+                                toggleVisibility("password")
+                            }}>
+                                {isVisible.password ? (
+                                    <EyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                                ) : (
+                                    <Eye className="text-2xl text-default-400 pointer-events-none" />
+                                )}
+                            </button>
+                        }
+                        isInvalid={errors.password.error}
+                        errorMessage={errors.password.error ? errors.password.msg : ""}
+                    />
+                    {
+                        props.type === "signup" ? (
+                            <Input
+                                type={isVisible.confirmpassword ? "text" : "password"}
+                                label="Confirm Password"
+                                variant="bordered"
+                                onChange={(e: any) => handleChange("confirmpassword", e)}
+                                endContent={
+                                    <button className="focus:outline-none" type="button" onClick={() => {
+                                        toggleVisibility("confirmpassword")
+                                    }}>
+                                        {isVisible.confirmpassword ? (
+                                            <EyeSlash className="text-2xl text-default-400 pointer-events-none" />
+                                        ) : (
+                                            <Eye className="text-2xl text-default-400 pointer-events-none" />
+                                        )}
+                                    </button>
+                                }
+                                isInvalid={errors.confirmpassword.error}
+                                errorMessage={errors.confirmpassword.error ? errors.confirmpassword.msg : ""}
+                            />
+                        ) : (
+                            <></>
+                        )
+                    }
+                    <Button onClick={handleSubmit} className="w-full" color="primary" isLoading={loading}>
+                        {loading ? "" : "Submit"}
+                    </Button>
+                </div>
             </div>
-        </div>
-    )
+        )
+    } else {
+        return <Loading />
+    }
 }

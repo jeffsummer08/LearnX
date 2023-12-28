@@ -11,7 +11,7 @@ const app: Express = express()
 
 const dbPool = new Pool({
     connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
-    max: 2
+    max: 1
 })
 app.use(cors({
     origin: true,

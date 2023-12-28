@@ -3,8 +3,6 @@ import Nav from "../Nav"
 
 export default function TeacherDashboard() {
     return (
-        <Container>
-            <Nav login={true}></Nav>
-        </Container>
+        <div>Teacher Dashboard</div>
     )
 }

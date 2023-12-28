@@ -26,6 +26,10 @@ export default function App() {
       element: <Dashboard />
     },
     {
+      path: "/dashboard/:role",
+      element: <Dashboard />,
+    },
+    {
       path: "/error",
       element: <Error type="500" />
     }

@@ -2,13 +2,14 @@ import { Navbar, NavbarBrand, NavbarContent, Button, NavbarItem, NavbarMenu, Nav
 import { Link } from "react-router-dom"
 
 interface Props {
-    login: boolean
+    login: boolean,
+    role: string
 }
 
 export default function Nav(props: Props) {
     const links = [
         {
-            name: "Test",
+            name: props.role,
             href: "/"
         }
     ]
@@ -45,7 +46,7 @@ export default function Nav(props: Props) {
                             as={Link}
                             to={props.login ? "/dashboard" : "/login"}
                         >
-                            {!props.login ? "Login" : "Dashboard"}
+                            {props.login ? "Login" : "Dashboard"}
                         </Button>
                 </NavbarItem>
             </NavbarContent>
