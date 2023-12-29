@@ -20,7 +20,7 @@ router.post("/login", async (req: Request, res: Response) => {
         const emailInput = req.body["email"]
         const passwordInput = req.body["password"]
         console.log(emailInput + " " + passwordInput);
-        const query = await db.selectFrom("users").select(["salt", "passwordHash", "isValid", "isTeacher", "isStaff", "isSuperuser"]).where("email", "=", emailInput).execute();
+        const query = await db.selectFrom("users").select(["salt", "passwordHash", "isValid", "isTeacher", "isStaff", "isSuperuser", "firstname", "lastname"]).where("email", "=", emailInput).execute();
         let authenticated = false;
         if(query.length === 1){
             const salt = query[0]["salt"]
@@ -36,6 +36,8 @@ router.post("/login", async (req: Request, res: Response) => {
                     req.session.isStaff = !!query[0]["isStaff"]
                     req.session.isTeacher = !!query[0]["isTeacher"]
                     req.session.isSuperuser = !!query[0]["isSuperuser"]
+                    req.session.firstName = query[0]["firstname"]
+                    req.session.lastName = query[0]["lastname"]
 
                     res.status(200).json({
                         msg: "Successfully authenticated user"
@@ -93,6 +95,8 @@ router.post("/signup", async (req: Request, res: Response) => {
             req.session.isStaff = false
             req.session.isTeacher = false
             req.session.isSuperuser = false
+            req.session.firstName = req.body['firstname']
+            req.session.lastName = req.body['lastname']
             console.log("Successfully created new user!")
             console.log(val)
         }
