@@ -20,7 +20,8 @@ export default function StudentDashboard() {
 
     }
     useEffect(() => {
-    }, [loading])
+        setLoading(false)
+    }, [])
     const classes = [
         {
             teacher: "KYLE MOTLEY",

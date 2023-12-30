@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function Error(props: Props) {
-    const [role, setRole] = useState<string>("student")
+    const [role, setRole] = useState<string>("")
     const [login, setLogin] = useState(false)
     useEffect(() => {
         validate(-1).then((res) => {
@@ -25,7 +25,7 @@ export default function Error(props: Props) {
     }
     return (
         <Container>
-            <Nav login={login} role={role} />
+            <Nav  role={role} />
             <div className="flex flex-col grow items-center justify-center">
                 <h1 className="font-normal text-7xl">{props.type}</h1>
                 <p className="mt-3 text-xl text-center w-5/6 md:w-1/2">

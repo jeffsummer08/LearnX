@@ -207,7 +207,11 @@ export default function AuthForm(props: Props) {
     }
     if (ready) {
         return (
-            <div className="flex grow items-center justify-center w-full h-full">
+            <div className="flex grow items-center justify-center w-full h-full" onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                    handleSubmit()
+                }
+            }}>
                 <div className="w-5/6 lg:w-1/2 flex flex-col gap-y-7 items-center">
                     <h1 className="font-normal text-3xl">{props.type === "login" ? "Login" : "Sign Up"}</h1>
                     <Card className="w-full bg-red-500 text-white" style={{ display: authError.error ? "" : "none" }}>
@@ -230,7 +234,6 @@ export default function AuthForm(props: Props) {
                                     }}
                                     isInvalid={errors.firstname.error}
                                     errorMessage={errors.firstname.error ? errors.firstname.msg : ""}
-
                                 />
                                 <Input
                                     type="text"

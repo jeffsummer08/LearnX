@@ -2,7 +2,7 @@ import client from "../instance"
 
 export default async function getUser() {
     try {
-        const res = await client.get("/auth/user", { withCredentials: true })
+        const res = await client.get("/auth/user")
         console.log(res.data)
         return {
             isAuthenticated: res.data.isAuthenticated as boolean,

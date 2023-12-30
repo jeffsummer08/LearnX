@@ -21,7 +21,7 @@ export default function Signup() {
     } else {
         return (
             <Container>
-                <Nav login={false} role={""} />
+                <Nav />
                 <AuthForm type="signup"></AuthForm>
             </Container>
         )
