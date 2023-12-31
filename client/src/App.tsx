@@ -5,6 +5,7 @@ import Login from "./pages/Login"
 import Signup from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import Error from "./pages/Error"
+import { ToastContainer } from "react-toastify"
 
 export default function App() {
   const router = createBrowserRouter([
@@ -37,6 +38,7 @@ export default function App() {
 
   return (
     <NextUIProvider>
+      <ToastContainer />
       <RouterProvider router={router} />
     </NextUIProvider>
   )

@@ -4,12 +4,14 @@ import getUser from "./functions/GetUser"
 import client from "./instance"
 import { Eye, EyeSlash, ExclamationCircle } from "react-bootstrap-icons"
 import Loading from "./Loading"
+import validate from "./functions/Validate"
 
 interface Props {
     type: "login" | "signup"
 }
 
 export default function AuthForm(props: Props) {
+    
     const [loading, setLoading] = useState<boolean>(false)
     const [ready, setReady] = useState<boolean>(false)
     const [isVisible, setIsVisible] = useState({
@@ -96,59 +98,9 @@ export default function AuthForm(props: Props) {
             }
         }))
     }
-    function validate(): boolean | undefined {
-        let valid: boolean = true
-        if (props.type === "login") {
-            if (values.email.trim() === "") {
-                valid = false
-                createError("email", "Email is empty")
-            }
-            if (values.password.trim() === "") {
-                valid = false
-                createError("password", "Password is empty")
-            }
-            return valid
-        } else {
-            if (values.firstname.trim() === "") {
-                valid = false
-                createError("firstname", "First Name is empty")
-            }
-            if (values.lastname.trim() === "") {
-                valid = false
-                createError("lastname", "Last Name is empty")
-            }
-            if (values.email.trim() === "") {
-                valid = false
-                createError("email", "Email is empty")
-            } else if (!values.email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                valid = false
-                createError("email", "Email is invalid")
-            } else {
-                if (values.email.trim() !== values.confirmemail.trim()) {
-                    valid = false
-                    createError("confirmemail", "Emails do not match")
-                    createError("email", "Emails do not match")
-                }
-            }
-            if (values.password.trim() === "") {
-                valid = false
-                createError("password", "Password is empty")
-            } else if (values.password.length < 8) {
-                valid = false
-                createError("password", "Password must be at least 8 characters long")
-            } else {
-                if (values.password.trim() !== values.confirmpassword.trim()) {
-                    valid = false
-                    createError("confirmpassword", "Passwords do not match")
-                    createError("password", "Passwords do not match")
-                }
-            }
-            return valid
-        }
-    }
     function handleSubmit() {
         setLoading(true)
-        const valid = validate()
+        const valid = validate(values, props.type, createError)
         if (valid) {
             setErrors({
                 firstname: {
@@ -184,7 +136,6 @@ export default function AuthForm(props: Props) {
             }).then(res => {
                 console.log(res.data.msg)
                 window.location.replace("/dashboard")
-                setLoading(false)
             }).catch(error => {
                 if (error.response.data.msg) {
                     setAuthError({

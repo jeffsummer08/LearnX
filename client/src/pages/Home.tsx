@@ -1,8 +1,9 @@
 import Nav from "../components/Nav"
 import Container from "../components/Container"
 import { useEffect, useState } from "react"
-import validate from "../components/functions/Validate"
+import AccessChecker from "../components/functions/AccessChecker"
 import Loading from "../components/Loading"
+import { toast } from "react-toastify"
 //import "../components/animations/slideIn.css"
 
 export default function Home() {
@@ -10,7 +11,7 @@ export default function Home() {
     const [role, setRole] = useState<string[] | null>(null)
     const [name, setName] = useState("")
     useEffect(() => {
-        validate(-1).then((res) => {
+        AccessChecker(-1).then((res) => {
             if (res.code === 200) {
                 setRole(res.data.role)
                 console.log(res.data.firstName)
@@ -18,6 +19,14 @@ export default function Home() {
             }
             setLoading(false)
         })
+        if (window.sessionStorage.getItem("logout") === "true") {
+            toast.success("Logged out successfully.", {
+                position: "top-center",
+                autoClose: 1500,
+                hideProgressBar: true,
+            })
+            window.sessionStorage.removeItem("logout")
+        }
     }, [])
     if (loading) {
         return <Loading />

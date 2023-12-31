@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import getUser from "../components/functions/GetUser"
 import { useParams } from "react-router-dom"
-import validate from "../components/functions/Validate"
+import AccessChecker from "../components/functions/AccessChecker"
 import Loading from "../components/Loading"
 import Error from "./Error"
 import StudentDashboard from "../components/dashboard/Student"
@@ -10,9 +10,11 @@ import AdminDashboard from "../components/dashboard/Admin"
 import Container from "../components/Container"
 import Nav from "../components/Nav"
 
+
 export default function Dashboard() {
+    
     const { role } = useParams()
-    const [userRole, setUserRole] = useState<string[] | string | null>(null)
+    const [userRole, setUserRole] = useState<string[] | "404" | null>(null)
     const [valid, setValid] = useState<boolean | null>(null)
     const [name, setName] = useState<string | null>(null)
     useEffect(() => {
@@ -33,7 +35,7 @@ export default function Dashboard() {
                     setValid(true)
                     return
             }
-            validate(requiredLevel).then((res) => {
+            AccessChecker(requiredLevel).then((res) => {
                 setUserRole(res.data.role)
                 setName(`${res.data.firstName} ${res.data.lastName}`)
                 if (res.code === 200) {
