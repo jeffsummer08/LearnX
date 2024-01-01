@@ -4,7 +4,6 @@ import {User, NewUser, UpdateUser} from "../database/models/user"
 import { InsertResult } from "kysely"
 import crypto from "crypto"
 import util from "util"
-import session from "express-session"
 
 const router = express.Router()
 const pbkdf2 = util.promisify(crypto.pbkdf2)

@@ -1,5 +1,6 @@
 import express, { Request, Response, Express } from "express"
 import authRoutes from "./routes/auth"
+import contentRoutes from "./routes/content"
 import session from "express-session"
 import cors from "cors"
 import "dotenv/config"
@@ -36,6 +37,7 @@ app.use(session({
 }))
 
 app.use('/auth', authRoutes)
+app.use('/content', contentRoutes)
 
 app.listen(8080, () => {
     console.log("Server on http://localhost:8080")
