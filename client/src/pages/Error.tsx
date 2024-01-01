@@ -1,19 +1,19 @@
 import Container from "../components/Container"
 import Nav from "../components/Nav"
 import { useEffect, useState } from "react"
-import validate from "../components/functions/Validate"
+import AccessChecker from "../components/functions/AccessChecker"
 
 interface Props {
     type: "404" | "500" | "403"
 }
 
 export default function Error(props: Props) {
-    const [role, setRole] = useState<string>("student")
-    const [login, setLogin] = useState(false)
+    const [role, setRole] = useState<string[] | null>(null)
+    const [name, setName] = useState<string | null>(null)
     useEffect(() => {
-        validate(-1).then((res) => {
+        AccessChecker(-1).then((res) => {
             if (res.code === 200) {
-                setLogin(true)
+                setName(`${res.data.firstName} ${res.data.lastName}`)
                 setRole(res.data.role)
             }
         })
@@ -25,7 +25,7 @@ export default function Error(props: Props) {
     }
     return (
         <Container>
-            <Nav login={login} role={role} />
+            <Nav role={role} name={name} />
             <div className="flex flex-col grow items-center justify-center">
                 <h1 className="font-normal text-7xl">{props.type}</h1>
                 <p className="mt-3 text-xl text-center w-5/6 md:w-1/2">

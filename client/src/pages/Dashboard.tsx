@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import getUser from "../components/functions/GetUser"
 import { useParams } from "react-router-dom"
-import validate from "../components/functions/Validate"
+import AccessChecker from "../components/functions/AccessChecker"
 import Loading from "../components/Loading"
 import Error from "./Error"
 import StudentDashboard from "../components/dashboard/Student"
@@ -10,10 +10,13 @@ import AdminDashboard from "../components/dashboard/Admin"
 import Container from "../components/Container"
 import Nav from "../components/Nav"
 
+
 export default function Dashboard() {
+    
     const { role } = useParams()
-    const [userRole, setUserRole] = useState<string | null>(null)
+    const [userRole, setUserRole] = useState<string[] | "404" | null>(null)
     const [valid, setValid] = useState<boolean | null>(null)
+    const [name, setName] = useState<string | null>(null)
     useEffect(() => {
         if (role) {
             let requiredLevel = 0
@@ -24,7 +27,7 @@ export default function Dashboard() {
                 case "teacher":
                     requiredLevel = 1
                     break
-                case "admin":
+                case "staff":
                     requiredLevel = 2
                     break
                 default:
@@ -32,8 +35,9 @@ export default function Dashboard() {
                     setValid(true)
                     return
             }
-            validate(requiredLevel).then((res) => {
+            AccessChecker(requiredLevel).then((res) => {
                 setUserRole(res.data.role)
+                setName(`${res.data.firstName} ${res.data.lastName}`)
                 if (res.code === 200) {
                     setValid(true)
                 } else if (res.code === 403) {
@@ -53,7 +57,7 @@ export default function Dashboard() {
             getUser().then((user) => {
                 if (user.isAuthenticated) {
                     if (user.isSuperuser || user.isStaff) {
-                        window.location.replace("/dashboard/admin")
+                        window.location.replace("/dashboard/staff")
                     } else if (user.isTeacher) {
                         window.location.replace("/dashboard/teacher")
                     } else {
@@ -67,7 +71,7 @@ export default function Dashboard() {
                 window.location.replace("/error")
             })
         }
-    })
+    }, [])
     if (userRole === null || valid === null) {
         return <Loading />
     } else if (valid === false) {
@@ -77,9 +81,9 @@ export default function Dashboard() {
     } else if (valid && userRole) {
         return (
             <Container>
-                <Nav login={true} role={userRole} />
+                <Nav role={userRole as string[]} name={name} />
                 {
-                    role === "student" ? <StudentDashboard /> : role === "teacher" ? <TeacherDashboard /> : role === "admin" ? <AdminDashboard /> : "hello"
+                    role === "student" ? <StudentDashboard /> : role === "teacher" ? <TeacherDashboard /> : role === "staff" ? <AdminDashboard /> : "hello"
                 }
             </Container>
         )

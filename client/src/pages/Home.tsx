@@ -1,28 +1,45 @@
 import Nav from "../components/Nav"
 import Container from "../components/Container"
 import { useEffect, useState } from "react"
-import validate from "../components/functions/Validate"
+import AccessChecker from "../components/functions/AccessChecker"
+import Loading from "../components/Loading"
+import { toast } from "react-toastify"
 //import "../components/animations/slideIn.css"
 
 export default function Home() {
-    const [login, setLogin] = useState<boolean>(false)
-    const [role, setRole] = useState<string>("")
+    const [loading, setLoading] = useState(true)
+    const [role, setRole] = useState<string[] | null>(null)
+    const [name, setName] = useState("")
     useEffect(() => {
-        validate(-1).then((res) => {
+        AccessChecker(-1).then((res) => {
             if (res.code === 200) {
-                setLogin(true)
                 setRole(res.data.role)
+                console.log(res.data.firstName)
+                setName(`${res.data.firstName} ${res.data.lastName}`)
             }
+            setLoading(false)
         })
+        if (window.sessionStorage.getItem("logout") === "true") {
+            toast.success("Logged out successfully.", {
+                position: "top-center",
+                autoClose: 1500,
+                hideProgressBar: true,
+            })
+            window.sessionStorage.removeItem("logout")
+        }
     }, [])
-    return (
-        <>
-            <Container>
-                <Nav login={login} role={role}></Nav>
-                <div className="flex grow flex-col items-center justify-center">
-                    <p className="text-2xl slideIn">Test</p>
-                </div>
-            </Container>
-        </>
-    )
+    if (loading) {
+        return <Loading />
+    } else {
+        return (
+            <>
+                <Container>
+                    <Nav role={role} name={name}></Nav>
+                    <div className="flex grow flex-col items-center justify-center">
+                        <p className="text-2xl slideIn">Test</p>
+                    </div>
+                </Container>
+            </>
+        )
+    }
 }
