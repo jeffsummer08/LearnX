@@ -21,7 +21,35 @@ router.get("/lesson/:lesson_url", (req: Request, res: Response) => {
     })
 })
 
-router.post("image_upload", (req: Request, res: Response) => {
+router.post("/image_upload", (req: Request, res: Response) => {
+    
+})
+
+router.post("/create_course", (req: Request, res: Response) => {
+
+})
+
+router.post("/edit_course", (req: Request, res: Response) => {
+    
+})
+
+router.post("/create_unit", (req: Request, res: Response) => {
+    
+})
+
+router.post("/edit_unit", (req: Request, res: Response) => {
+    
+})
+
+router.post("/create_lesson", (req: Request, res: Response) => {
+    
+})
+
+router.post("/edit_lesson", (req: Request, res: Response) => {
+    
+})
+
+router.post("/edit_lesson_order", (req: Request, res: Response) => {
     
 })
 export default router
