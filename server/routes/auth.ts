@@ -127,22 +127,22 @@ router.get("/logout", async (req: Request, res: Response) => {
 router.get("/user", (req: Request, res: Response) => {
     if (req.session.isAuthenticated) {
         res.status(200).json({
-            "isAuthenticated": req.session.isAuthenticated,
-            "isTeacher": req.session.isTeacher,
-            "isStaff": req.session.isStaff,
-            "isSuperuser": req.session.isSuperuser,
-            "firstName": req.session.firstName,
-            "lastName": req.session.lastName
+            isAuthenticated: req.session.isAuthenticated,
+            isTeacher: req.session.isTeacher,
+            isStaff: req.session.isStaff,
+            isSuperuser: req.session.isSuperuser,
+            firstName: req.session.firstName,
+            lastName: req.session.lastName
         })
     }
     else {
         res.status(200).json({
-            "isAuthenticated": false,
-            "isTeacher": false,
-            "isStaff": false,
-            "isSuperuser": false,
-            "firstName": "",
-            "lastName": ""
+            isAuthenticated: false,
+            isTeacher: false,
+            isStaff: false,
+            isSuperuser: false,
+            firstName: "",
+            lastName: ""
         })
     }
 })
