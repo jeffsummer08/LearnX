@@ -76,7 +76,7 @@ router.post("/signup", async (req: Request, res: Response) => {
                 msg: "Email is already in use"
             })
         }
-        else if(req.body['firstname'].length > 64 || req.body['lastname'] > 64){
+        else if(req.body['firstname'].length > 64 || req.body['lastname'].length > 64){
             res.status(401).json({
                 msg: "First and last name cannot be greater than 64 characters"
             })
