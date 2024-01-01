@@ -9,15 +9,19 @@ router.get("/course_list", (req: Request, res: Response) => {
     })
 })
 
-router.get("/course/:course_id", (req: Request, res: Response) => {
+router.get("/course/:course_url", (req: Request, res: Response) => {
     res.json({
         course: req.params.course_id
     })
 })
 
-router.get("/lesson/:lesson_id", (req: Request, res: Response) => {
+router.get("/lesson/:lesson_url", (req: Request, res: Response) => {
     res.json({
         lesson: req.params.lesson_id
     })
+})
+
+router.post("image_upload", (req: Request, res: Response) => {
+    
 })
 export default router

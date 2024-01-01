@@ -76,6 +76,11 @@ router.post("/signup", async (req: Request, res: Response) => {
                 msg: "Email is already in use"
             })
         }
+        else if(req.body['firstname'].length > 64 || req.body['lastname'] > 64){
+            res.status(401).json({
+                msg: "First and last name cannot be greater than 64 characters"
+            })
+        }
         else {
             const salt = crypto.randomBytes(16).toString("hex")
             const passwordHash = await hashPassword(req.body["password"], salt)

@@ -26,7 +26,7 @@ const pgSession = connectPgSimple(session)
 app.use(session({
     store: new pgSession({
         pool: dbPool,
-        tableName: "session",
+        tableName: "sessions",
         createTableIfMissing: true,
     }),
     secret: "this is a cryptographically random seed!",

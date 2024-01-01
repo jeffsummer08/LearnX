@@ -3,10 +3,16 @@ import { ClassTable } from "./models/class";
 import { Kysely, PostgresDialect } from "kysely"
 import { Pool } from "pg";
 import "dotenv/config"
+import { CourseTable } from "./models/course";
+import { UnitTable } from "./models/unit";
+import { LessonTable } from "./models/lesson";
 
 interface Database {
     users: UserTable
     classes: ClassTable
+    courses: CourseTable
+    units: UnitTable
+    lesson: LessonTable
 }
 
 // I'm not bothering with env variables
