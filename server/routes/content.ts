@@ -3,9 +3,8 @@ import db from "../database/database"
 
 const router = express.Router()
 
-router.get("/course_list", async (req: Request, res: Response) => {
+router.get("/course-list", async (req: Request, res: Response) => {
     const query = await db.selectFrom("courses").selectAll().execute()
-    console.log(query)
     res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => {
         return {
             title: val.title,
