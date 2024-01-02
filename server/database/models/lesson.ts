@@ -6,7 +6,7 @@ export interface LessonTable {
     url: string
     type: Generated<"article" | "video" | "quiz">
     timestampCreated: Generated<Date>
-    content: Generated<object>
+    content: Generated<any>
     isPublished: Generated<boolean>
     
 }

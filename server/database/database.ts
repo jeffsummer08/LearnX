@@ -12,7 +12,7 @@ interface Database {
     classes: ClassTable
     courses: CourseTable
     units: UnitTable
-    lesson: LessonTable
+    lessons: LessonTable
 }
 
 // I'm not bothering with env variables
