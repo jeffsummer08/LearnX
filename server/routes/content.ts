@@ -3,10 +3,18 @@ import db from "../database/database"
 
 const router = express.Router()
 
-router.get("/course_list", (req: Request, res: Response) => {
-    res.json({
-        courses: {}
-    })
+router.get("/course_list", async (req: Request, res: Response) => {
+    const query = await db.selectFrom("courses").selectAll().execute()
+    console.log(query)
+    res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => {
+        return {
+            title: val.title,
+            url: val.url,
+            thumbnail: val.thumbnail,
+            description: val.description,
+            isPublished: val.isPublished,
+        }
+    }))
 })
 
 router.get("/course/:course_url", (req: Request, res: Response) => {
