@@ -1,8 +1,17 @@
 import express, {Request, Response} from "express"
 import db from "../database/database"
+import { initializeApp, cert } from "firebase-admin/app"
+import { getDownloadURL, getStorage } from "firebase-admin/storage"
+import mime from "mime-types"
+import { SaveOptions } from "@google-cloud/storage"
 
+initializeApp({
+    credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
+    storageBucket: "learnx-bpa.appspot.com"
+})
+
+const bucket = getStorage().bucket()
 const router = express.Router()
-
 router.get("/course-list", async (req: Request, res: Response) => {
     const query = await db.selectFrom("courses").selectAll().execute()
     res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => {
@@ -65,38 +74,61 @@ router.get("/lesson/:lesson_url", async (req: Request, res: Response) => {
     else{
         data.questions = lessonQuery[0].content.questions
     }
-    res.json()
+    res.json(data)
 })
 
-router.post("/image_upload", (req: Request, res: Response) => {
+router.post("/file-upload", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else{
+        const fileData = req.body.fileData.replace(/^data:image\/\w+;base64,/, '')
+        const fileName = req.body.fileName
+        bucket.file(fileName).save(Buffer.from(fileData, "base64"), <SaveOptions> {
+            public: true,
+            validation: "md5",
+            metadata: {
+                contentType: mime.lookup(fileData)
+            }
+        }).then(async () => {
+            res.status(201).json({
+                msg: "Successfully uploaded file",
+                url: await getDownloadURL(bucket.file(fileName))
+            })
+        }).catch(error => {
+            console.log(error);
+            res.status(500).json({
+                msg: "Unable to upload file. Try again in a few moments."
+            })
+        })
+    }
+})
+
+router.post("/create-course", (req: Request, res: Response) => {
+
+})
+
+router.post("/edit-course", (req: Request, res: Response) => {
     
 })
 
-router.post("/create_course", (req: Request, res: Response) => {
-
-})
-
-router.post("/edit_course", (req: Request, res: Response) => {
+router.post("/create-unit", (req: Request, res: Response) => {
     
 })
 
-router.post("/create_unit", (req: Request, res: Response) => {
+router.post("/edit-unit", (req: Request, res: Response) => {
     
 })
 
-router.post("/edit_unit", (req: Request, res: Response) => {
+router.post("/create-lesson", (req: Request, res: Response) => {
     
 })
 
-router.post("/create_lesson", (req: Request, res: Response) => {
+router.post("/edit-lesson", (req: Request, res: Response) => {
     
 })
 
-router.post("/edit_lesson", (req: Request, res: Response) => {
-    
-})
-
-router.post("/edit_lesson_order", (req: Request, res: Response) => {
+router.post("/edit-lesson-order", (req: Request, res: Response) => {
     
 })
 export default router
