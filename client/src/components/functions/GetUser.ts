@@ -1,6 +1,6 @@
 import client from "../instance"
 
-export default async function getUser() {
+export default async function GetUser() {
     try {
         const res = await client.get("/auth/user")
         console.log(res.data)

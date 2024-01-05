@@ -1,5 +1,5 @@
 import { Input, Button, Card, CardBody } from "@nextui-org/react"
-import { ChangeEvent, useState, useEffect } from "react"
+import { useState, useEffect, FormEvent } from "react"
 import getUser from "./functions/GetUser"
 import client from "./instance"
 import { Eye, EyeSlash, ExclamationCircle } from "react-bootstrap-icons"
@@ -11,7 +11,6 @@ interface Props {
 }
 
 export default function AuthForm(props: Props) {
-    
     const [loading, setLoading] = useState<boolean>(false)
     const [ready, setReady] = useState<boolean>(false)
     const [isVisible, setIsVisible] = useState({
@@ -60,10 +59,10 @@ export default function AuthForm(props: Props) {
         getUser().then((user) => {
             console.log(user)
             if (user.error) {
-                window.location.replace("/error")
+                window.location.assign("/error")
             } else {
                 if (user.isAuthenticated) {
-                    window.location.replace("/dashboard")
+                    window.location.assign("/dashboard")
                 } else {
                     setReady(true)
                 }
@@ -76,10 +75,11 @@ export default function AuthForm(props: Props) {
             [parameter]: !prevState[parameter]
         }))
     }
-    function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: ChangeEvent<HTMLInputElement>) {
+    function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: FormEvent<HTMLInputElement>) {
+        const value = e.currentTarget.value
         setValues(prevState => ({
             ...prevState,
-            [parameter]: e.target.value
+            [parameter]: value
         }))
         setErrors(prevState => ({
             ...prevState,
@@ -135,7 +135,7 @@ export default function AuthForm(props: Props) {
                 password: values.password
             }).then(res => {
                 console.log(res.data.msg)
-                window.location.replace("/dashboard")
+                window.location.assign("/dashboard")
             }).catch(error => {
                 if (error.response.data.msg) {
                     setAuthError({
@@ -180,7 +180,7 @@ export default function AuthForm(props: Props) {
                                     type="text"
                                     label="First Name"
                                     variant="bordered"
-                                    onChange={(e: any) => {
+                                    onInput={(e) => {
                                         handleChange("firstname", e)
                                     }}
                                     isInvalid={errors.firstname.error}
@@ -190,7 +190,7 @@ export default function AuthForm(props: Props) {
                                     type="text"
                                     label="Last Name"
                                     variant="bordered"
-                                    onChange={(e: any) => {
+                                    onInput={(e) => {
                                         handleChange("lastname", e)
                                     }}
                                     isInvalid={errors.lastname.error}
@@ -205,7 +205,7 @@ export default function AuthForm(props: Props) {
                         type="email"
                         label="Email"
                         variant="bordered"
-                        onChange={(e: any) => handleChange("email", e)}
+                        onInput={(e) => handleChange("email", e)}
                         isInvalid={errors.email.error}
                         errorMessage={errors.email.error ? errors.email.msg : ""}
                     />
@@ -215,7 +215,7 @@ export default function AuthForm(props: Props) {
                                 type="email"
                                 label="Confirm Email"
                                 variant="bordered"
-                                onChange={(e: any) => handleChange("confirmemail", e)}
+                                onInput={(e) => handleChange("confirmemail", e)}
                                 isInvalid={errors.confirmemail.error}
                                 errorMessage={errors.confirmemail.error ? errors.confirmemail.msg : ""}
                             />
@@ -227,7 +227,7 @@ export default function AuthForm(props: Props) {
                         type={isVisible.password ? "text" : "password"}
                         label="Password"
                         variant="bordered"
-                        onChange={(e: any) => handleChange("password", e)}
+                        onInput={(e) => handleChange("password", e)}
                         endContent={
                             <button className="focus:outline-none" type="button" onClick={() => {
                                 toggleVisibility("password")
@@ -248,7 +248,7 @@ export default function AuthForm(props: Props) {
                                 type={isVisible.confirmpassword ? "text" : "password"}
                                 label="Confirm Password"
                                 variant="bordered"
-                                onChange={(e: any) => handleChange("confirmpassword", e)}
+                                onInput={(e) => handleChange("confirmpassword", e)}
                                 endContent={
                                     <button className="focus:outline-none" type="button" onClick={() => {
                                         toggleVisibility("confirmpassword")

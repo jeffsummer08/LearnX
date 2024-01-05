@@ -9,7 +9,7 @@ export default function validate(
     },
     type: "login" | "signup",
     createError: any
-): boolean | undefined {
+) {
     let valid: boolean = true
     if (type === "login") {
         if (values.email.trim() === "") {

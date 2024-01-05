@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react"
-import getUser from "../components/functions/GetUser"
+import getUser from "../../components/functions/GetUser"
 import { useParams } from "react-router-dom"
-import AccessChecker from "../components/functions/AccessChecker"
-import Loading from "../components/Loading"
+import AccessChecker from "../../components/functions/AccessChecker"
+import Loading from "../../components/Loading"
 import Error from "./Error"
-import StudentDashboard from "../components/dashboard/Student"
-import TeacherDashboard from "../components/dashboard/Teacher"
-import AdminDashboard from "../components/dashboard/Admin"
-import Container from "../components/Container"
-import Nav from "../components/Nav"
+import StudentDashboard from "../../components/dashboard/Student"
+import TeacherDashboard from "../../components/dashboard/Teacher"
+import AdminDashboard from "../../components/dashboard/Admin"
+import Container from "../../components/Container"
+import Nav from "../../components/Nav"
 
 
 export default function Dashboard() {
@@ -43,32 +43,32 @@ export default function Dashboard() {
                 } else if (res.code === 403) {
                     setValid(false)
                 } else if (res.code === 500) {
-                    window.location.replace("/error")
+                    window.location.assign("/error")
                 } else if (res.code === 401) {
-                    window.location.replace("/login")
+                    window.location.assign("/login")
                 } else {
-                    window.location.replace("/error")
+                    window.location.assign("/error")
                 }
             }).catch((error) => {
                 console.error(error)
-                window.location.replace("/error")
+                window.location.assign("/error")
             })
         } else {
             getUser().then((user) => {
                 if (user.isAuthenticated) {
                     if (user.isSuperuser || user.isStaff) {
-                        window.location.replace("/dashboard/staff")
+                        window.location.assign("/dashboard/staff")
                     } else if (user.isTeacher) {
-                        window.location.replace("/dashboard/teacher")
+                        window.location.assign("/dashboard/teacher")
                     } else {
-                        window.location.replace("/dashboard/student")
+                        window.location.assign("/dashboard/student")
                     }
                 } else {
-                    window.location.replace("/login")
+                    window.location.assign("/login")
                 }
             }).catch((error) => {
                 console.error(error)
-                window.location.replace("/error")
+                window.location.assign("/error")
             })
         }
     }, [])

@@ -125,7 +125,7 @@ router.post("/create-course", async (req: Request, res: Response) => {
                 url: req.body.url,
                 thumbnail: req.body.thumbnail,
                 description: req.body.description,
-            })
+            }).execute()
             res.status(201).json({
                 msg: "Successfully created course"
             })

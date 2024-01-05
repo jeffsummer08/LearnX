@@ -1,7 +1,7 @@
-import Container from "../components/Container"
-import Nav from "../components/Nav"
+import Container from "../../components/Container"
+import Nav from "../../components/Nav"
 import { useEffect, useState } from "react"
-import AccessChecker from "../components/functions/AccessChecker"
+import AccessChecker from "../../components/functions/AccessChecker"
 
 interface Props {
     type: "404" | "500" | "403"

@@ -32,7 +32,7 @@ export default function Nav(props: Props) {
             }
         )
         window.sessionStorage.setItem("logout", "true")
-        window.location.replace("/")
+        window.location.assign("/")
     }
     return (
         <Navbar className="border-b border-black">
@@ -41,7 +41,7 @@ export default function Nav(props: Props) {
                     className="md:hidden"
                 />
                 <NavbarBrand unselectable="on" onClick={() => {
-                    window.location.replace("/")
+                    window.location.assign("/")
                 }} className="cursor-pointer">
                     <img
                         src="/name.png"
@@ -87,12 +87,12 @@ export default function Nav(props: Props) {
                                             </DropdownItem>
                                         ))
                                     }
-                                    <DropdownItem onClick={logout}>Logout</DropdownItem>
+                                    <DropdownItem className="text-danger" color="danger" onClick={logout}>Logout</DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
                         ) : (
                             <Button color="primary" onClick={() => {
-                                window.location.replace("/login")
+                                window.location.assign("/login")
                             }}>Login</Button>
                         )
                     }

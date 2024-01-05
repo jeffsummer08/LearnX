@@ -1,8 +1,8 @@
-import Nav from "../components/Nav"
-import Container from "../components/Container"
+import Nav from "../../components/Nav"
+import Container from "../../components/Container"
 import { useEffect, useState } from "react"
-import AccessChecker from "../components/functions/AccessChecker"
-import Loading from "../components/Loading"
+import AccessChecker from "../../components/functions/AccessChecker"
+import Loading from "../../components/Loading"
 import { toast } from "react-toastify"
 //import "../components/animations/slideIn.css"
 

@@ -1,15 +1,43 @@
 @import url('https://fonts.googleapis.com/css?family=Quicksand');
-
-@tailwind base;
-@tailwind utilities;
-@tailwind components;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import '../node_modules/@mdxeditor/editor/dist/style.css';
 
 html {
   font-family: 'Quicksand', sans-serif;
 }
 
 input[type=password]::-ms-reveal,
-input[type=password]::-ms-clear
-{
-    display: none;
+input[type=password]::-ms-clear {
+  display: none;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 500;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+div.textEditor ul {
+    list-style: disc;
+    margin-left: 2.5em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+div.textEditor ol {
+    list-style: decimal;
+    margin-left: 2.5em;
+    margin-top: 1em;
+    margin-bottom: 1em;
 }

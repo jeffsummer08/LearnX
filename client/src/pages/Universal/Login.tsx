@@ -1,9 +1,9 @@
-import AuthForm from "../components/AuthForm"
-import Nav from "../components/Nav"
-import Container from "../components/Container"
-import Loading from "../components/Loading"
+import AuthForm from "../../components/AuthForm"
+import Nav from "../../components/Nav"
+import Container from "../../components/Container"
+import Loading from "../../components/Loading"
 import { useEffect, useState } from "react"
-import AccessChecker from "../components/functions/AccessChecker"
+import AccessChecker from "../../components/functions/AccessChecker"
 
 
 export default function Login() {
@@ -12,7 +12,7 @@ export default function Login() {
     useEffect(() => {
         AccessChecker(-1).then((res) => {
             if (res.code === 200) {
-                window.location.replace("/dashboard")
+                window.location.assign("/dashboard")
             } else {
                 setLoading(false)
             }
