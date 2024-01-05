@@ -3,7 +3,7 @@ import db from "../database/database"
 import { initializeApp, cert } from "firebase-admin/app"
 import { getDownloadURL, getStorage } from "firebase-admin/storage"
 import mime from "mime-types"
-import { SaveOptions } from "@google-cloud/storage"
+import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -88,7 +88,7 @@ router.post("/file-upload", async (req: Request, res: Response) => {
             public: true,
             validation: "md5",
             metadata: {
-                contentType: mime.lookup(fileData)
+                contentType: mime.lookup(fileName)
             }
         }).then(async () => {
             res.status(201).json({
@@ -102,6 +102,10 @@ router.post("/file-upload", async (req: Request, res: Response) => {
             })
         })
     }
+})
+
+router.post("/delete-file", async (req: Request, res: Response) => {
+    
 })
 
 router.post("/create-course", (req: Request, res: Response) => {
@@ -131,4 +135,5 @@ router.post("/edit-lesson", (req: Request, res: Response) => {
 router.post("/edit-lesson-order", (req: Request, res: Response) => {
     
 })
+
 export default router
