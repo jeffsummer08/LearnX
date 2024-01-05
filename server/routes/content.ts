@@ -4,6 +4,7 @@ import { initializeApp, cert } from "firebase-admin/app"
 import { getDownloadURL, getStorage } from "firebase-admin/storage"
 import mime from "mime-types"
 import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
+import { NewCourse } from "../database/models/course"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -108,11 +109,40 @@ router.post("/delete-file", async (req: Request, res: Response) => {
     
 })
 
-router.post("/create-course", (req: Request, res: Response) => {
-
+router.post("/create-course", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!req.body.url.match(/^[0-9a-z-]+$/)){
+        res.status(401).json({
+            msg: "Invalid url/alias"
+        })
+    }
+    else{
+        try{
+            await db.insertInto("courses").values(<NewCourse> {
+                title: req.body.title,
+                url: req.body.url,
+                thumbnail: req.body.thumbnail,
+                description: req.body.description,
+            })
+            res.status(201).json({
+                msg: "Successfully created course"
+            })
+        }            
+        catch{
+            res.status(500).json({
+                msg: "Unable to create course"
+            })
+        }
+    }
 })
 
 router.post("/edit-course", (req: Request, res: Response) => {
+    
+})
+
+router.post("/delete-course", (req: Request, res: Response) => {
     
 })
 
@@ -124,11 +154,19 @@ router.post("/edit-unit", (req: Request, res: Response) => {
     
 })
 
+router.post("/delete-unit", (req: Request, res: Response) => {
+    
+})
+
 router.post("/create-lesson", (req: Request, res: Response) => {
     
 })
 
 router.post("/edit-lesson", (req: Request, res: Response) => {
+    
+})
+
+router.post("/delete-lesson", (req: Request, res: Response) => {
     
 })
 
