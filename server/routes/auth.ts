@@ -16,10 +16,10 @@ async function hashPassword(passwordRaw: string, salt: string) {
 }
 router.post("/login", async (req: Request, res: Response) => {
     try {
-        const emailInput = req.body["email"]
-        const passwordInput = req.body["password"]
+        const emailInput = req.body.email
+        const passwordInput = req.body.password
         console.log(emailInput + " " + passwordInput);
-        const query = await db.selectFrom("users").select(["salt", "passwordHash", "isValid", "isTeacher", "isStaff", "isSuperuser", "firstname", "lastname"]).where("email", "=", emailInput).execute();
+        const query = await db.selectFrom("users").selectAll().where("email", "=", emailInput).execute();
         let authenticated = false;
         if (query.length === 1) {
             const salt = query[0]["salt"]
@@ -70,25 +70,25 @@ router.post("/login", async (req: Request, res: Response) => {
 router.post("/signup", async (req: Request, res: Response) => {
     //unique email check
     try {
-        const emailCheck = await db.selectFrom("users").select("id").where("email", "=", req.body["email"]).execute();
+        const emailCheck = await db.selectFrom("users").select("id").where("email", "=", req.body.email).execute();
         if (emailCheck.length >= 1) {
             res.status(401).json({
                 msg: "Email is already in use"
             })
         }
-        else if(req.body['firstname'].length > 64 || req.body['lastname'].length > 64){
+        else if(req.body.firstname.length > 64 || req.body.lastname.length > 64){
             res.status(401).json({
                 msg: "First and last name cannot be greater than 64 characters"
             })
         }
         else {
             const salt = crypto.randomBytes(16).toString("hex")
-            const passwordHash = await hashPassword(req.body["password"], salt)
+            const passwordHash = await hashPassword(req.body.password, salt)
 
-            const val = await db.insertInto('users').values(<NewUser>{
-                firstname: req.body['firstname'],
-                lastname: req.body['lastname'],
-                email: req.body['email'],
+            const val = await db.insertInto("users").values(<NewUser>{
+                firstname: req.body.firstname,
+                lastname: req.body.lastname,
+                email: req.body.email,
                 passwordHash: passwordHash,
                 salt: salt
             }).executeTakeFirst()
@@ -96,8 +96,8 @@ router.post("/signup", async (req: Request, res: Response) => {
             req.session.isStaff = false
             req.session.isTeacher = false
             req.session.isSuperuser = false
-            req.session.firstName = req.body['firstname']
-            req.session.lastName = req.body['lastname']
+            req.session.firstName = req.body.firstname
+            req.session.lastName = req.body.lastname
             console.log("Successfully created new user!")
             console.log(val)
             res.status(201).json({

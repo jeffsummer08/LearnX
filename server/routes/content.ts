@@ -82,7 +82,7 @@ router.post("/file-upload", async (req: Request, res: Response) => {
         res.sendStatus(403)
     }
     else{
-        const fileData = req.body.fileData.replace(/^data:image\/\w+;base64,/, '')
+        const fileData = req.body.fileData.replace(/^data:image\/\w+;base64,/, "")
         const fileName = req.body.fileName
         bucket.file(fileName).save(Buffer.from(fileData, "base64"), <SaveOptions> {
             public: true,
