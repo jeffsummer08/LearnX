@@ -34,7 +34,13 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
         })
     }
     else{
-        const unitsQuery = await db.selectFrom("units").selectAll().where("id", "in", courseQuery[0].units).execute()
+        let unitsQuery: any[];
+        if(courseQuery[0].units.length > 0){
+            unitsQuery = await db.selectFrom("units").selectAll().where("id", "in", courseQuery[0].units).execute()
+        }
+        else{
+            unitsQuery = []
+        }
         res.status(200).json({
             title: courseQuery[0].title,
             thumbnail: courseQuery[0].thumbnail,
