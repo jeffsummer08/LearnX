@@ -5,6 +5,7 @@ import { getDownloadURL, getStorage } from "firebase-admin/storage"
 import mime from "mime-types"
 import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
 import { NewCourse } from "../database/models/course"
+import { NewUnit } from "../database/models/unit"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -158,8 +159,35 @@ router.post("/delete-course", (req: Request, res: Response) => {
     
 })
 
-router.post("/create-unit", (req: Request, res: Response) => {
-    
+router.post("/create-unit", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!req.body.url.match(/^[0-9a-z-]+$/)){
+        res.status(401).json({
+            msg: "Invalid url/alias"
+        })
+    }
+    else{
+        try{
+            const newUnitId = await db.insertInto("units").values(<NewUnit> {
+                title: req.body.title,
+                url: req.body.url,
+            }).returning("id").execute()
+            await db.updateTable("courses").where("courses.url", "=", req.body.course_url).set((eb) => ({
+                units: eb("units", "+", [newUnitId[0].id])
+            })).execute
+            res.status(201).json({
+                msg: "Successfully created unit"
+            })
+            
+        }            
+        catch{
+            res.status(500).json({
+                msg: "Unable to create unit"
+            })
+        }
+    }
 })
 
 router.post("/edit-unit", (req: Request, res: Response) => {
