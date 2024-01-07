@@ -47,7 +47,13 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
             description: courseQuery[0].description,
             isPublished: courseQuery[0].isPublished,
             units: unitsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(async val => {
-                const lessonsQuery = await db.selectFrom("lessons").selectAll().where("id", "in", val.lessons).execute()
+                let lessonsQuery: any[];
+                if(val.lessons.length > 0){
+                    lessonsQuery = await db.selectFrom("lessons").selectAll().where("id", "in", val.lessons).execute()
+                }
+                else{
+                    lessonsQuery = []
+                }
                 return {
                     title: val.title,
                     url: val.url,
