@@ -4,8 +4,8 @@ import { initializeApp, cert } from "firebase-admin/app"
 import { getDownloadURL, getStorage } from "firebase-admin/storage"
 import mime from "mime-types"
 import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
-import { NewCourse } from "../database/models/course"
-import { NewUnit } from "../database/models/unit"
+import { NewCourse, UpdateCourse } from "../database/models/course"
+import { NewUnit, UpdateUnit } from "../database/models/unit"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -153,12 +153,69 @@ router.post("/create-course", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/edit-course", (req: Request, res: Response) => {
-    
+router.post("/edit-course", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else {
+        try{
+            const courseQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.body.url).execute()
+            if(courseQuery.length !== 1){
+                res.status(401).json({
+                    msg: "Invalid course url"
+                })
+            }
+            else if(!req.body.update_url.match(/^[0-9a-z-]+$/)){
+                res.status(401).json({
+                    msg: "Invalid update url/alias. Use url to denote the current course url and update_url to denote the new url."
+                })
+            }
+            else{
+                await db.updateTable("courses").where("url", "=", req.body.url).set(<UpdateCourse>{
+                    title: req.body.title,
+                    url: req.body.update_url,
+                    thumbnail: req.body.thumbnail,
+                    description: req.body.description,
+                    isPublished: req.body.isPublished
+                }).execute()
+                res.status(200).json({
+                    msg: "Succesfully edited course"
+                })
+            }            
+        }
+        catch{
+            res.status(500).json({
+                msg: "Unable to edit course"
+            })
+        }
+    }
 })
 
-router.post("/delete-course", (req: Request, res: Response) => {
-    
+router.post("/delete-course", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else {
+        try{
+            const courseQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.body.url).execute()
+            if(courseQuery.length !== 1){
+                res.status(401).json({
+                    msg: "Invalid course url"
+                })
+            }
+            else{
+                await db.deleteFrom("courses").where("url", "=", req.body.url).execute()
+                res.status(200).json({
+                    msg: "Succesfully deleted course"
+                })
+            }            
+        }
+        catch{
+            res.status(500).json({
+                msg: "Unable to delete course"
+            })
+        }
+    }
 })
 
 router.post("/create-unit", async (req: Request, res: Response) => {
@@ -209,18 +266,79 @@ router.post("/create-unit", async (req: Request, res: Response) => {
         }
     }
 })
-router.post("/test", (req: Request, res: Response) => {
-    db.updateTable("courses").where("courses.url", "=", req.body.course_url).set((eb) => ({
-        units: eb("units", "||", <any>"{6}")
-    })).execute()
-    res.end()
-})
-router.post("/edit-unit", (req: Request, res: Response) => {
-    
+
+router.post("/edit-unit", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!req.body.url.match(/^[0-9a-z-]+$/)){
+        res.status(401).json({
+            msg: "Invalid update url/alias. Use url to denote the current unit url and update_url to denote the new url."
+        })
+    }
+    else{
+        try{
+            const courseExistQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.body.course_url).execute();
+            if(courseExistQuery.length !== 1){
+                res.status(401).json({
+                    msg: "Invalid course url/alias, course_url"
+                })
+            }
+            else{
+                let unitExistQuery: any[] = []
+                if(courseExistQuery[0].units.length > 0)
+                    unitExistQuery = await db.selectFrom("units").selectAll().where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.url).execute()
+                console.log(unitExistQuery)
+                if(unitExistQuery.length !== 1){
+                    res.status(401).json({
+                        msg: "Unit does not exist"
+                    })
+                }
+                else{
+                    await db.updateTable("units").where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.url).set(<UpdateUnit> {
+                        title: req.body.title,
+                        url: req.body.update_url,
+                        isPublished: req.body.isPublished
+                    }).execute()
+                    res.status(200).json({
+                        msg: "Successfully edited unit"
+                    })
+                }
+            }
+        }     
+        catch{
+            res.status(500).json({
+                msg: "Unable to edit unit"
+            })
+        }
+    }
 })
 
-router.post("/delete-unit", (req: Request, res: Response) => {
-    
+router.post("/delete-unit", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else {
+        try{
+            const courseQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.body.course_url).execute()
+            if(courseQuery.length !== 1){
+                res.status(401).json({
+                    msg: "Invalid course url, use course_url"
+                })
+            }
+            else{
+                await db.deleteFrom("units").where("id", "in", courseQuery[0].units).where("url", "=", req.body.url).execute()
+                res.status(200).json({
+                    msg: "Succesfully deleted unit"
+                })
+            }
+        }
+        catch{
+            res.status(500).json({
+                msg: "Successfully deleted unit"
+            })
+        }
+    }
 })
 
 router.post("/create-lesson", (req: Request, res: Response) => {
