@@ -11,6 +11,6 @@ export interface LessonTable {
     
 }
 
-export type User = Selectable<LessonTable>
-export type NewUser = Insertable<LessonTable>
-export type UpdateUser = Updateable<LessonTable>
+export type Lesson = Selectable<LessonTable>
+export type NewLesson = Insertable<LessonTable>
+export type UpdateLesson = Updateable<LessonTable>

@@ -6,6 +6,7 @@ import mime from "mime-types"
 import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
 import { NewCourse, UpdateCourse } from "../database/models/course"
 import { NewUnit, UpdateUnit } from "../database/models/unit"
+import { NewLesson, UpdateLesson } from "../database/models/lesson"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -27,7 +28,7 @@ router.get("/course-list", async (req: Request, res: Response) => {
 
 router.get("/course/:course_url", async (req: Request, res: Response) => {
     const courseQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.params.course_url).execute()
-    if(courseQuery.length == 0 || !courseQuery[0].isPublished && !req.session.isStaff && !req.session.isSuperuser){
+    if(courseQuery.length === 0 || !courseQuery[0].isPublished && !req.session.isStaff && !req.session.isSuperuser){
         res.status(401).json({
             msg: "Invalid course url"
         })
@@ -66,23 +67,44 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
     }
 })
 
-router.get("/lesson/:lesson_url", async (req: Request, res: Response) => {
-    const lessonQuery = await db.selectFrom("lessons").selectAll().where("url", "=", req.params.lesson_url).execute()
-    let data: any = {
-        title: lessonQuery[0].title,
-        type: lessonQuery[0].type,
-        isPublished: lessonQuery[0].isPublished,
+router.get("/lesson/:course_url/:unit_url/:lesson_url", async (req: Request, res: Response) => {
+    try{
+        const courseQuery = await db.selectFrom("courses").select("units").where("url", "=", req.params.course_url).execute()
+        let unitQuery: any[] = []
+        if(courseQuery[0].units.length > 0)
+            unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.params.unit_url).execute()
+        let lessonQuery: any[] = []
+        if(courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0)
+            lessonQuery = await db.selectFrom("lessons").selectAll().where("id", "in", unitQuery[0].lessons).where("url", "=", req.params.lesson_url).execute()
+
+        if(lessonQuery.length === 0 || !lessonQuery[0].isPublished && !req.session.isStaff && !req.session.isSuperuser){
+            res.status(401).json({
+                msg: "Invalid course, unit, or lesson url/alias"
+            })
+        }
+        else{
+            let data: any = {
+                title: lessonQuery[0].title,
+                type: lessonQuery[0].type,
+                isPublished: lessonQuery[0].isPublished,
+            }
+            if(data.type === "article"){
+                data.markdown = lessonQuery[0].content.markdown
+            }
+            else if(data.type === "video"){
+                data.videoUrl = lessonQuery[0].content.videoUrl
+            }
+            else{
+                data.questions = lessonQuery[0].content.questions
+            }
+            res.json(data)        
+        }        
     }
-    if(data.type === "article"){
-        data.markdown = lessonQuery[0].content.markdown
+    catch {
+        res.status(500).json({
+            msg: "Unable to get lesson"
+        })
     }
-    else if(data.type === "video"){
-        data.videoUrl = lessonQuery[0].content.videoUrl
-    }
-    else{
-        data.questions = lessonQuery[0].content.questions
-    }
-    res.json(data)
 })
 
 router.post("/file-upload", async (req: Request, res: Response) => {
@@ -327,10 +349,15 @@ router.post("/delete-unit", async (req: Request, res: Response) => {
                 })
             }
             else{
-                await db.deleteFrom("units").where("id", "in", courseQuery[0].units).where("url", "=", req.body.url).execute()
-                res.status(200).json({
-                    msg: "Succesfully deleted unit"
-                })
+                const deleteQuery = await db.deleteFrom("units").where("id", "in", courseQuery[0].units).where("url", "=", req.body.url).execute()
+                if(deleteQuery.length === 0){
+                    res.status(401).json("Could not find unit to delete")
+                }
+                else{
+                    res.json({
+                        msg: "Successfully deleted lesson"
+                    })                
+                }
             }
         }
         catch{
@@ -341,16 +368,121 @@ router.post("/delete-unit", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/create-lesson", (req: Request, res: Response) => {
-    
+router.post("/create-lesson", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!req.body.url.match(/^[0-9a-z-]+$/)){
+        res.status(401).json({
+            msg: "Invalid url/alias"
+        })
+    }
+    else{
+        try{
+            const courseExistQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.body.course_url).execute();
+            if(courseExistQuery.length !== 1){
+                res.status(401).json({
+                    msg: "Invalid course url/alias, use course_url"
+                })
+            }
+            else{
+                let unitExistQuery: any[] = []
+                if(courseExistQuery[0].units.length > 0)
+                    unitExistQuery = await db.selectFrom("units").selectAll().where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.unit_url).execute()
+
+                if(unitExistQuery.length !== 1){
+                    res.status(401).json({
+                        msg: "Invalid unit url/alias, use unit_url"
+                    })
+                }
+                else{
+                    let works = true;
+                    let lessonValues: NewLesson = {
+                        title: req.body.title,
+                        url: req.body.url,
+                        type: req.body.type
+                    }
+                    if(lessonValues.type === "article" && req.body.markdown){
+                        lessonValues.content = {
+                            //SANITIZE THIS CRAP
+                            markdown: req.body.markdown
+                        }
+                    }
+                    else if(lessonValues.type === "quiz" && req.body.questions){
+                        lessonValues.content = {
+                            questions: req.body.questions
+                        }
+                    }
+                    else if(lessonValues.type === "video" && req.body.video_url){
+                        lessonValues.content = {
+                            videoUrl: req.body.video_url
+                        }
+                    }
+                    else{
+                        res.status(401).json({
+                            msg: "Make sure type article lessons pass in a markdown field, type quiz lessons pass in a questions field, and type video lessons pass in a video_url field"
+                        })
+                        works = false
+                    }
+                    if(works){
+                        const newLessonId = await db.insertInto("lessons").values(lessonValues).returning("id").execute()
+                        await db.updateTable("units").where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.unit_url).set((eb) => ({
+                            lessons: eb("lessons", "||", <any>`{${newLessonId[0].id}}`)
+                        })).execute()
+                        res.status(201).json({
+                            msg: "Successfully created lesson"
+                        })                        
+                    }
+                }
+            }
+        }     
+        catch{
+            res.status(500).json({
+                msg: "Unable to create lesson"
+            })
+        }
+    }
 })
 
 router.post("/edit-lesson", (req: Request, res: Response) => {
     
 })
 
-router.post("/delete-lesson", (req: Request, res: Response) => {
-    
+router.post("/delete-lesson", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!req.body.course_url || !req.body.unit_url || !req.body.url){
+        res.status(401).json({
+            msg: "Use course_url, unit_url, and url parameters"
+        })
+    }
+    else {
+        try{
+            const courseQuery = await db.selectFrom("courses").select("units").where("url", "=", req.body.course_url).execute()
+            let unitQuery: any[] = []
+            if(courseQuery[0].units.length > 0)
+                unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
+            
+            let deleteQuery: any[] = []
+            if(courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0)
+                deleteQuery = await db.deleteFrom("lessons").where("id", "in", unitQuery[0].lessons).where("url", "=", req.body.url).execute()
+            
+            if(deleteQuery.length === 0){
+                res.status(401).json("Could not find lesson to delete")
+            }
+            else{
+                res.json({
+                    msg: "Successfully deleted lesson"
+                })                
+            }
+        }
+        catch {
+            res.status(500).json({
+                msg: "Unable to delete lesson"
+            })
+        }
+    }
 })
 
 router.post("/edit-lesson-order", (req: Request, res: Response) => {
