@@ -16,15 +16,13 @@ const bucket = getStorage().bucket()
 const router = express.Router()
 router.get("/course-list", async (req: Request, res: Response) => {
     const query = await db.selectFrom("courses").selectAll().execute()
-    res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => {
-        return {
-            title: val.title,
-            url: val.url,
-            thumbnail: val.thumbnail,
-            description: val.description,
-            isPublished: val.isPublished,
-        }
-    }))
+    res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
+        title: val.title,
+        url: val.url,
+        thumbnail: val.thumbnail,
+        description: val.description,
+        isPublished: val.isPublished,
+    })))
 })
 
 router.get("/course/:course_url", async (req: Request, res: Response) => {
@@ -47,27 +45,23 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
             thumbnail: courseQuery[0].thumbnail,
             description: courseQuery[0].description,
             isPublished: courseQuery[0].isPublished,
-            units: unitsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(async val => {
-                let lessonsQuery: any[];
-                if(val.lessons.length > 0){
+            units: await Promise.all(unitsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(async val => {
+                let lessonsQuery: any[] = [];
+                if(val.lessons.length > 0)
                     lessonsQuery = await db.selectFrom("lessons").selectAll().where("id", "in", val.lessons).execute()
-                }
-                else{
-                    lessonsQuery = []
-                }
+
+                console.log(lessonsQuery + " " + val.title)
                 return {
                     title: val.title,
                     url: val.url,
                     isPublished: val.isPublished,
-                    lessons: lessonsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => {
-                        return {
-                            title: val.title,
-                            type: val.type,
-                            url: val.url
-                        }
-                    })
+                    lessons: lessonsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
+                        title: val.title,
+                        type: val.type,
+                        url: val.url
+                    }))
                 }
-            })
+            }))
         })        
     }
 })
@@ -133,15 +127,23 @@ router.post("/create-course", async (req: Request, res: Response) => {
     }
     else{
         try{
-            await db.insertInto("courses").values(<NewCourse> {
-                title: req.body.title,
-                url: req.body.url,
-                thumbnail: req.body.thumbnail,
-                description: req.body.description,
-            }).execute()
-            res.status(201).json({
-                msg: "Successfully created course"
-            })
+            const courseUrlCheck = await db.selectFrom("courses").selectAll().where("url", "=", req.body.url).execute()
+            if(courseUrlCheck.length > 0){
+                res.status(401).json({
+                    msg: "Course url is taken"
+                })
+            }
+            else{
+                await db.insertInto("courses").values(<NewCourse> {
+                    title: req.body.title,
+                    url: req.body.url,
+                    thumbnail: req.body.thumbnail,
+                    description: req.body.description,
+                }).execute()
+                res.status(201).json({
+                    msg: "Successfully created course"
+                })                
+            }
         }            
         catch{
             res.status(500).json({
@@ -170,18 +172,36 @@ router.post("/create-unit", async (req: Request, res: Response) => {
     }
     else{
         try{
-            const newUnitId = await db.insertInto("units").values(<NewUnit> {
-                title: req.body.title,
-                url: req.body.url,
-            }).returning("id").execute()
-            await db.updateTable("courses").where("courses.url", "=", req.body.course_url).set((eb) => ({
-                units: eb("units", "+", [newUnitId[0].id])
-            })).execute
-            res.status(201).json({
-                msg: "Successfully created unit"
-            })
-            
-        }            
+            const courseExistQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.body.course_url).execute();
+            if(courseExistQuery.length !== 1){
+                res.status(401).json({
+                    msg: "Invalid course url/alias"
+                })
+            }
+            else{
+                let unitExistQuery: any[] = []
+                if(courseExistQuery[0].units.length > 0)
+                    unitExistQuery = await db.selectFrom("units").selectAll().where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.url).execute()
+
+                if(unitExistQuery.length !== 0){
+                    res.status(401).json({
+                        msg: "Unit already exists"
+                    })
+                }
+                else{
+                    const newUnitId = await db.insertInto("units").values(<NewUnit> {
+                        title: req.body.title,
+                        url: req.body.url,
+                    }).returning("id").execute()
+                    await db.updateTable("courses").where("courses.url", "=", req.body.course_url).set((eb) => ({
+                        units: eb("units", "||", <any>`{${newUnitId[0].id}}`)
+                    })).execute()
+                    res.status(201).json({
+                        msg: "Successfully created unit"
+                    })
+                }
+            }
+        }     
         catch{
             res.status(500).json({
                 msg: "Unable to create unit"
@@ -189,7 +209,12 @@ router.post("/create-unit", async (req: Request, res: Response) => {
         }
     }
 })
-
+router.post("/test", (req: Request, res: Response) => {
+    db.updateTable("courses").where("courses.url", "=", req.body.course_url).set((eb) => ({
+        units: eb("units", "||", <any>"{6}")
+    })).execute()
+    res.end()
+})
 router.post("/edit-unit", (req: Request, res: Response) => {
     
 })
