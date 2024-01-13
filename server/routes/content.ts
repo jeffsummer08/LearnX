@@ -7,6 +7,7 @@ import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
 import { NewCourse, UpdateCourse } from "../database/models/course"
 import { NewUnit, UpdateUnit } from "../database/models/unit"
 import { NewLesson, UpdateLesson } from "../database/models/lesson"
+import DOMPurify from "dompurify"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -89,7 +90,7 @@ router.get("/lesson/:course_url/:unit_url/:lesson_url", async (req: Request, res
                 isPublished: lessonQuery[0].isPublished,
             }
             if(data.type === "article"){
-                data.markdown = lessonQuery[0].content.markdown
+                data.markdown = DOMPurify.sanitize(lessonQuery[0].content.markdown)
             }
             else if(data.type === "video"){
                 data.videoUrl = lessonQuery[0].content.videoUrl
@@ -293,7 +294,7 @@ router.post("/edit-unit", async (req: Request, res: Response) => {
     if(!req.session.isStaff && !req.session.isSuperuser){
         res.sendStatus(403)
     }
-    else if(!req.body.url.match(/^[0-9a-z-]+$/)){
+    else if(!req.body.update_url.match(/^[0-9a-z-]+$/)){
         res.status(401).json({
             msg: "Invalid update url/alias. Use url to denote the current unit url and update_url to denote the new url."
         })
@@ -404,8 +405,7 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
                     }
                     if(lessonValues.type === "article" && req.body.markdown){
                         lessonValues.content = {
-                            //SANITIZE THIS CRAP
-                            markdown: req.body.markdown
+                            markdown: DOMPurify.sanitize(req.body.markdown)
                         }
                     }
                     else if(lessonValues.type === "quiz" && req.body.questions){
@@ -444,8 +444,76 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/edit-lesson", (req: Request, res: Response) => {
-    
+router.post("/edit-lesson", async (req: Request, res: Response) => {
+    if(!req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!req.body.update_url.match(/^[0-9a-z-]+$/)){
+        res.status(401).json({
+            msg: "Invalid update url/alias. Use url to denote the current unit url and update_url to denote the new url."
+        })
+    }
+    else if(!req.body.course_url || !req.body.unit_url || !req.body.url || !req.body.update_url){
+        res.status(401).json({
+            msg: "Use course_url, unit_url, url, and update_url parameters"
+        })
+    }
+    else{
+        try{
+            const courseQuery = await db.selectFrom("courses").select("units").where("url", "=", req.body.course_url).execute()
+            let unitQuery: any[] = []
+            if(courseQuery[0].units.length > 0)
+                unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
+            
+            let updateQuery: any[] = []
+            if (courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0){
+                let works = true
+                let lessonValues: UpdateLesson = {
+                    title: req.body.title,
+                    url: req.body.update_url,
+                    type: req.body.type
+                }
+                if(lessonValues.type === "article" && req.body.markdown){
+                    lessonValues.content = {
+                        markdown: DOMPurify.sanitize(req.body.markdown)
+                    }
+                }
+                else if(lessonValues.type === "quiz" && req.body.questions){
+                    lessonValues.content = {
+                        questions: req.body.questions
+                    }
+                }
+                else if(lessonValues.type === "video" && req.body.video_url){
+                    lessonValues.content = {
+                        videoUrl: req.body.video_url
+                    }
+                }
+                else{
+                    res.status(401).json({
+                        msg: "Make sure type article lessons pass in a markdown field, type quiz lessons pass in a questions field, and type video lessons pass in a video_url field"
+                    })
+                    works = false
+                }
+                if(works){
+                    updateQuery = await db.updateTable("lessons").where("id", "in", unitQuery[0].lessons).where("url", "=", req.body.url).set(lessonValues).execute()                    
+                }
+
+            }
+            if(updateQuery.length === 0){
+                res.status(401).json("Could not find lesson to update")
+            }
+            else{
+                res.json({
+                    msg: "Successfully updated lesson"
+                })                
+            }
+        }
+        catch {
+            res.status(500).json({
+                msg: "Unable to update lesson"
+            })
+        }
+    }
 })
 
 router.post("/delete-lesson", async (req: Request, res: Response) => {
