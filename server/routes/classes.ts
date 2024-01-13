@@ -18,10 +18,8 @@ router.post("/create-class/", async (req: Request, res: Response) => {
     else{
         db.insertInto("classes").values(<NewClass> {
             name: req.body.name,
-            teacher: req.session.userId,
-
+            teacher: req.session.userId
         })
     }
-
 })
 export default router
