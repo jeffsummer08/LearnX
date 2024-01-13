@@ -4,6 +4,7 @@ import { User, NewUser, UpdateUser } from "../database/models/user"
 import { InsertResult } from "kysely"
 import crypto from "crypto"
 import util from "util"
+import { QueryExecutorBase } from "kysely/dist/cjs/query-executor/query-executor-base"
 
 const router = express.Router()
 const pbkdf2 = util.promisify(crypto.pbkdf2)
@@ -37,6 +38,7 @@ router.post("/login", async (req: Request, res: Response) => {
                     req.session.isSuperuser = !!query[0]["isSuperuser"]
                     req.session.firstName = query[0]["firstname"]
                     req.session.lastName = query[0]["lastname"]
+                    req.session.userId = query[0]["id"]
 
                     res.status(200).json({
                         msg: "Successfully authenticated user"
@@ -91,13 +93,15 @@ router.post("/signup", async (req: Request, res: Response) => {
                 email: req.body.email,
                 passwordHash: passwordHash,
                 salt: salt
-            }).executeTakeFirst()
+            }).returningAll().executeTakeFirst()
+
             req.session.isAuthenticated = true
-            req.session.isStaff = false
-            req.session.isTeacher = false
-            req.session.isSuperuser = false
-            req.session.firstName = req.body.firstname
-            req.session.lastName = req.body.lastname
+            req.session.isStaff = !!val!.isStaff
+            req.session.isTeacher = !!val!.isTeacher
+            req.session.isSuperuser = !!val!.isSuperuser
+            req.session.firstName = val!.firstname
+            req.session.lastName = val!.lastname
+            req.session.userId = val!.id
             console.log("Successfully created new user!")
             console.log(val)
             res.status(201).json({
