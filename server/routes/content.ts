@@ -7,7 +7,7 @@ import { DeleteFilesOptions, SaveOptions } from "@google-cloud/storage"
 import { NewCourse, UpdateCourse } from "../database/models/course"
 import { NewUnit, UpdateUnit } from "../database/models/unit"
 import { NewLesson, UpdateLesson } from "../database/models/lesson"
-import DOMPurify from "dompurify"
+import DOMPurify from "isomorphic-dompurify"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
