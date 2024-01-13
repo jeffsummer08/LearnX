@@ -403,10 +403,10 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
                         url: req.body.url,
                         type: req.body.type
                     }
-                    if(lessonValues.type === "article" && req.body.markdown){
+                    if(lessonValues.type === "article"){
                         lessonValues.content = {
-                            markdown: DOMPurify.sanitize(req.body.markdown)
-                        }
+                            markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown) : ""
+                        }                            
                     }
                     else if(lessonValues.type === "quiz" && req.body.questions){
                         lessonValues.content = {
