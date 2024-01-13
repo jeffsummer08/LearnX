@@ -471,7 +471,8 @@ router.post("/edit-lesson", async (req: Request, res: Response) => {
                 let lessonValues: UpdateLesson = {
                     title: req.body.title,
                     url: req.body.update_url,
-                    type: req.body.type
+                    type: req.body.type,
+                    isPublished: req.body.isPublished
                 }
                 if(lessonValues.type === "article" && req.body.markdown){
                     lessonValues.content = {
