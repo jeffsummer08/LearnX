@@ -101,18 +101,24 @@ export default function Lesson() {
                 let totalCorrectAnswers = 0
                 let correctAnswers = 0
                 let selectedIncorrectAnswers = 0
+                let index = 0
+                let question = [...questions[i].answers].sort((a, b) => a.answer.localeCompare(b.answer))
+                let answer = [...answers[i].answer].sort((a, b) => a.localeCompare(b))
                 for (let j = 0; j < questions[i].answers.length; j++) {
-                    if (questions[i].answers[j].correct) {
+                    if (question[j].correct) {
                         totalCorrectAnswers++
-                        for (let k = 0; k < answers[i].answer.length; k++) {
-                            if (questions[i].answers[j].answer !== answers[i].answer[k]) {
-                                selectedIncorrectAnswers++
-                            } else if (questions[i].answers[j].answer === answers[i].answer[k]) {
-                                correctAnswers++
-                            }
+                    }
+                    if (index < answer.length && (question[j].answer === answer[index])) {
+                        if (question[j].correct) {
+                            correctAnswers++
+                        } else {
+                            selectedIncorrectAnswers++
                         }
+                        index++
                     }
                 }
+                console.log(correctAnswers, totalCorrectAnswers, selectedIncorrectAnswers)
+                console.log((correctAnswers) / (totalCorrectAnswers + selectedIncorrectAnswers))
                 grade += ((correctAnswers) / (totalCorrectAnswers + selectedIncorrectAnswers))
             } else if (questions[i].questionType === "true-false") {
                 for (let j = 0; j < questions[i].answers.length; j++) {
@@ -129,26 +135,34 @@ export default function Lesson() {
 
     const submitQuiz = async () => {
         try {
-            toastId.current = toast.loading("Submitting quiz...")
-            console.log(questions)
-            const grade = gradeQuiz()
-            const total = questions.length
-            const percent = Math.round((grade / total) * 100)
-            setGrade(percent)
-            await client.post("/content/update-lesson-progress", {
-                course_url: courseId,
-                unit_url: unitId,
-                url: lessonId,
-                progress: percent
-            })
-            toast.update(toastId.current, {
-                render: "Quiz submitted successfully!",
-                type: "success",
-                isLoading: false,
-                autoClose: 1500,
-                hideProgressBar: true
-            })
-            setSubmitted(true)
+            if (logged) {
+                toastId.current = toast.loading("Submitting quiz...")
+                console.log(questions)
+                const grade = gradeQuiz()
+                const total = questions.length
+                const percent = Math.round((grade / total) * 100)
+                setGrade(percent)
+                await client.post("/content/update-lesson-progress", {
+                    course_url: courseId,
+                    unit_url: unitId,
+                    url: lessonId,
+                    progress: percent
+                })
+                toast.update(toastId.current, {
+                    render: "Quiz submitted successfully!",
+                    type: "success",
+                    isLoading: false,
+                    autoClose: 1500,
+                    hideProgressBar: true
+                })
+                setSubmitted(true)
+            } else {
+                toast.error("You must be logged in to submit a quiz.", {
+                    position: "top-center",
+                    autoClose: 1500,
+                    hideProgressBar: true
+                })
+            }
         } catch (error: any) {
             console.error(error)
             console.error(error.response.msg)
