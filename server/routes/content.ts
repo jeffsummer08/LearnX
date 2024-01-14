@@ -117,7 +117,10 @@ router.get("/lesson/:course_url/:unit_url/:lesson_url", async (req: Request, res
             else{
                 let progressValue = -1
                 if(req.session.isAuthenticated){
-                    progressValue = (await db.selectFrom("progress").select("progress").where("userId", "=", req.session.userId!).where("lessonId", "=", lessonQuery[0].id).execute())[0].progress
+                    const progressQuery = (await db.selectFrom("progress").select(["progress", "timestampCreated"]).where("userId", "=", req.session.userId!).where("lessonId", "=", lessonQuery[0].id).execute()).sort((a, b) => b.timestampCreated.getTime() - a.timestampCreated.getTime())
+                    if(progressQuery.length > 0){
+                        progressValue = progressQuery[0].progress
+                    }
                 }
                 data.progress = progressValue
                 data.questions = lessonQuery[0].content.questions
