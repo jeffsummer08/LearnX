@@ -222,7 +222,7 @@ router.post("/edit-course", async (req: Request, res: Response) => {
             }
             else{
                 const courseUrlCheck = await db.selectFrom("courses").selectAll().where("url", "=", req.body.update_url).execute()
-                if(courseUrlCheck.length > 0){
+                if(req.body.update_url != req.body.url && courseUrlCheck.length > 0){
                     res.status(401).json({
                         msg: "Update url is taken"
                     })
@@ -356,7 +356,7 @@ router.post("/edit-unit", async (req: Request, res: Response) => {
                         msg: "Unit does not exist"
                     })
                 }
-                else if(updateUnitExistQuery.length > 0){
+                else if(req.body.update_url != req.body.url && updateUnitExistQuery.length > 0){
                     res.status(401).json({
                         msg: "Update url is taken"
                     })
@@ -524,9 +524,9 @@ router.post("/edit-lesson", async (req: Request, res: Response) => {
             let updateQuery: any[] = []
             let works = true
 
-            if(updateLessonExistQuery.length > 0){
+            if(req.body.update_url != req.body.url && updateLessonExistQuery.length > 0){
                 res.status(401).json({
-                    msg: "Update url already taken"
+                    msg: "Update url is taken"
                 })
                 works = false;
             }
