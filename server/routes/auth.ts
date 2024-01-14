@@ -39,6 +39,7 @@ router.post("/login", async (req: Request, res: Response) => {
                     req.session.firstName = query[0]["firstname"]
                     req.session.lastName = query[0]["lastname"]
                     req.session.userId = query[0]["id"]
+                    req.session.classes = query[0]["classes"]
 
                     res.status(200).json({
                         msg: "Successfully authenticated user"
@@ -102,6 +103,7 @@ router.post("/signup", async (req: Request, res: Response) => {
             req.session.firstName = val!.firstname
             req.session.lastName = val!.lastname
             req.session.userId = val!.id
+            req.session.classes = val!.classes
             console.log("Successfully created new user!")
             console.log(val)
             res.status(201).json({
