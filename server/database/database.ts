@@ -6,6 +6,7 @@ import "dotenv/config"
 import { CourseTable } from "./models/course";
 import { UnitTable } from "./models/unit";
 import { LessonTable } from "./models/lesson";
+import { ProgressTable } from "./models/progress";
 
 interface Database {
     users: UserTable
@@ -13,6 +14,7 @@ interface Database {
     courses: CourseTable
     units: UnitTable
     lessons: LessonTable
+    progress: ProgressTable
 }
 
 // I'm not bothering with env variables

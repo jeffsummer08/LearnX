@@ -8,6 +8,7 @@ import { NewCourse, UpdateCourse } from "../database/models/course"
 import { NewUnit, UpdateUnit } from "../database/models/unit"
 import { NewLesson, UpdateLesson } from "../database/models/lesson"
 import DOMPurify from "isomorphic-dompurify"
+import { NewProgress } from "../database/models/progress"
 
 initializeApp({
     credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
@@ -467,22 +468,22 @@ router.post("/edit-lesson", async (req: Request, res: Response) => {
                 unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
             
             let updateQuery: any[] = []
+            let works = true
             if (courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0){
-                let works = true
                 let lessonValues: UpdateLesson = {
                     title: req.body.title,
                     url: req.body.update_url,
                     type: req.body.type,
                     isPublished: req.body.isPublished
                 }
-                if(lessonValues.type === "article" && req.body.markdown){
+                if(lessonValues.type === "article"){
                     lessonValues.content = {
-                        markdown: DOMPurify.sanitize(req.body.markdown)
-                    }
+                        markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown) : ""
+                    }                            
                 }
-                else if(lessonValues.type === "quiz" && req.body.questions){
+                else if(lessonValues.type === "quiz"){
                     lessonValues.content = {
-                        questions: req.body.questions
+                        questions: req.body.questions ? req.body.questions : ""
                     }
                 }
                 else if(lessonValues.type === "video" && req.body.video_url){
@@ -501,10 +502,10 @@ router.post("/edit-lesson", async (req: Request, res: Response) => {
                 }
 
             }
-            if(updateQuery.length === 0){
+            if(works && updateQuery.length === 0){
                 res.status(401).json("Could not find lesson to update")
             }
-            else{
+            else if(works){
                 res.json({
                     msg: "Successfully updated lesson"
                 })                
@@ -555,8 +556,40 @@ router.post("/delete-lesson", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/edit-lesson-order", (req: Request, res: Response) => {
-    
+router.post("/update-lesson-progress", async (req: Request, res: Response) => {
+    let progressValue = parseInt(req.body.progress)
+    if(!req.session.isAuthenticated){
+        res.status(401).json({
+            msg: "Cannot save score as you are not logged in!"
+        })
+    }
+    else if(isNaN(req.body.progress) || progressValue < 0 || progressValue > 100){
+        res.status(401).json({
+            msg: "Invalid progress"
+        })
+    }
+    else{
+        try{
+            const courseQuery = await db.selectFrom("courses").select("units").where("url", "=", req.body.course_url).execute()
+            let unitQuery: any[] = []
+            if(courseQuery[0].units.length > 0)
+                unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
+            
+            let lessonQuery: any[] = []
+            if(courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0)
+                lessonQuery = await db.selectFrom("lessons").select("id").where("id", "in", unitQuery[0].lessons).where("url", "=", req.body.url).execute()
+            if(lessonQuery.length > 0){
+                db.insertInto("progress").values(<NewProgress> {
+
+                })
+            }     
+        }
+        catch{
+
+        }
+    }
+
+
 })
 
 export default router

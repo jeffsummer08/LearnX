@@ -8,7 +8,6 @@ export interface UserTable {
     passwordHash: string
     salt: string
     timestampCreated: Generated<Date>
-    completedLessons: Generated<number[]>
     classes: Generated<number[]>
     isTeacher: Generated<Boolean>
     isStaff: Generated<Boolean>
