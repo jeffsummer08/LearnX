@@ -60,7 +60,8 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
                     lessons: lessonsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
                         title: val.title,
                         type: val.type,
-                        url: val.url
+                        url: val.url,
+                        isPublished: val.isPublished
                     }))
                 }
             }))

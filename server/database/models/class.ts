@@ -6,7 +6,6 @@ export interface ClassTable {
     teacher: number
     students: Generated<number[]>
     timestampCreated: Generated<Date>
-
 }
 
 export type Class = Selectable<ClassTable>
