@@ -29,7 +29,11 @@ router.get("/course-list", async (req: Request, res: Response) => {
 })
 
 router.get("/course/:course_url", async (req: Request, res: Response) => {
-    const courseQuery = await db.selectFrom("courses").selectAll().where("url", "=", req.params.course_url).execute()
+    const courseQuery = (await db.selectFrom("courses").selectAll().where("url", "=", req.params.course_url).execute())
+    let progressQuery: any[] = []
+    if(req.session.isAuthenticated){
+        progressQuery = (await db.selectFrom("progress").selectAll().where("userId", "=", req.session.userId!).where("courseId", "=", courseQuery[0].id).execute()).sort((a, b) => b.timestampCreated.getTime() - a.timestampCreated.getTime())
+    }
     if(courseQuery.length === 0 || !courseQuery[0].isPublished && !req.session.isStaff && !req.session.isSuperuser){
         res.status(401).json({
             msg: "Invalid course url"
@@ -58,12 +62,24 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
                     title: val.title,
                     url: val.url,
                     isPublished: val.isPublished,
-                    lessons: lessonsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
-                        title: val.title,
-                        type: val.type,
-                        url: val.url,
-                        isPublished: val.isPublished
-                    }))
+                    lessons: lessonsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => {
+                        let progressValue = -1
+                        if(val.type === "quiz"){
+                            for(const row of progressQuery){
+                                if(row.lessonId === val.id){
+                                    progressValue = row.progress
+                                    break
+                                }
+                            }
+                        }
+                        return {
+                            title: val.title,
+                            type: val.type,
+                            url: val.url,
+                            progress: progressValue, 
+                            isPublished: val.isPublished
+                        }
+                    })
                 }
             }))
         })        
@@ -570,22 +586,31 @@ router.post("/update-lesson-progress", async (req: Request, res: Response) => {
     }
     else{
         try{
-            const courseQuery = await db.selectFrom("courses").select("units").where("url", "=", req.body.course_url).execute()
+            const courseQuery = await db.selectFrom("courses").select(["id", "units"]).where("url", "=", req.body.course_url).execute()
             let unitQuery: any[] = []
             if(courseQuery[0].units.length > 0)
-                unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
+                unitQuery = await db.selectFrom("units").select(["id", "lessons"]).where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
             
             let lessonQuery: any[] = []
             if(courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0)
                 lessonQuery = await db.selectFrom("lessons").select("id").where("id", "in", unitQuery[0].lessons).where("url", "=", req.body.url).execute()
             if(lessonQuery.length > 0){
-                db.insertInto("progress").values(<NewProgress> {
-
+                await db.insertInto("progress").values(<NewProgress> {
+                    userId: req.session.userId!,
+                    lessonId: lessonQuery[0].id,
+                    unitId: unitQuery[0].id,
+                    courseId: courseQuery[0].id,
+                    progress: progressValue
+                }).execute()
+                res.status(201).json({
+                    msg: "Succesfully updated lesson progress"
                 })
             }     
         }
         catch{
-
+            res.status(500).json({
+                msg: "Unable to update lesson progress"
+            })
         }
     }
 
