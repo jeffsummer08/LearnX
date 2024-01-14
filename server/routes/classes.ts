@@ -38,11 +38,14 @@ router.get("/", async (req: Request, res: Response) => {
             joinCode: idToJoinCode(row.id, row.timestampCreated.getMilliseconds())
         }))
     }
-    data.memberOf = (await db.selectFrom("classes").selectAll().where("id", "in", req.session.classes!).execute()).map(row => ({
-        name: row.name,
-        numStudents: row.students.length,
-        joinCode: idToJoinCode(row.id, row.timestampCreated.getMilliseconds())
-    }))
+    if(req.session.isAuthenticated){
+        data.memberOf = (await db.selectFrom("classes").selectAll().where("id", "in", req.session.classes!).execute()).map(row => ({
+            name: row.name,
+            numStudents: row.students.length,
+            joinCode: idToJoinCode(row.id, row.timestampCreated.getMilliseconds())
+        }))        
+    }
+
     res.status(200).json(data)
 })
 
@@ -119,4 +122,20 @@ router.post("/edit-class", async (req: Request, res: Response) => {
     }
 })
 
+router.post("/join-class", async (req: Request, res: Response) => {
+    let classQuery = await joinCodeToClass(req.body.join_code)
+    if(!req.session.isAuthenticated){
+        res.status(401).json({
+            msg: "You must be logged in to join a class"
+        })
+    }
+    else if(!classQuery){
+        res.status(401).json({
+            msg: "Invalid join code"
+        })
+    }
+    else{
+        
+    }
+})
 export default router
