@@ -106,6 +106,7 @@ router.get("/lesson/:course_url/:unit_url/:lesson_url", async (req: Request, res
                 title: lessonQuery[0].title,
                 type: lessonQuery[0].type,
                 isPublished: lessonQuery[0].isPublished,
+                progress: -1
             }
             if(data.type === "article"){
                 data.markdown = DOMPurify.sanitize(lessonQuery[0].content.markdown)
@@ -114,6 +115,11 @@ router.get("/lesson/:course_url/:unit_url/:lesson_url", async (req: Request, res
                 data.videoUrl = lessonQuery[0].content.videoUrl
             }
             else{
+                let progressValue = -1
+                if(req.session.isAuthenticated){
+                    progressValue = (await db.selectFrom("progress").select("progress").where("userId", "=", req.session.userId!).where("lessonId", "=", lessonQuery[0].id).execute())[0].progress
+                }
+                data.progress = progressValue
                 data.questions = lessonQuery[0].content.questions
             }
             res.json(data)        
