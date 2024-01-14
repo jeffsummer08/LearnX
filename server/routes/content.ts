@@ -410,7 +410,7 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
                     }
                     else if(lessonValues.type === "quiz"){
                         lessonValues.content = {
-                            questions: req.body.questions ? req.body.questions : {}
+                            questions: req.body.questions ? req.body.questions : ""
                         }
                     }
                     else if(lessonValues.type === "video" && req.body.video_url){
