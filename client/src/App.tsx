@@ -10,7 +10,6 @@ import Lesson from "./pages/Universal/Lesson"
 import Course from "./pages/Universal/Course"
 import { ToastContainer } from "react-toastify"
 import EditQuiz from "./pages/Admin/EditQuiz"
-import Quiz from "./pages/Universal/Quiz"
 
 export default function App() {
   const router = createBrowserRouter([
@@ -48,8 +47,12 @@ export default function App() {
       element: <Lesson />
     },
     {
-      path: "/courses/:courseId/unit/:unitId/quiz/:quizId",
-      element: <Quiz />
+      path: "/courses/:courseId/unit/:unitId/video/:lessonId",
+      element: <Lesson />
+    },
+    {
+      path: "/courses/:courseId/unit/:unitId/quiz/:lessonId",
+      element: <Lesson />
     },
     {
       path: "/courses/:courseId/unit/:unitId/lesson/:lessonId/edit",
