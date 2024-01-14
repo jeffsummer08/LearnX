@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import AccessChecker from "../../components/functions/AccessChecker"
 import { useParams } from "react-router-dom"
 import Loading from "../../components/Loading"
@@ -6,9 +6,10 @@ import GetCourse from "../../components/functions/GetCourse"
 import Container from "../../components/Container"
 import Nav from "../../components/Nav"
 import { Card, CardBody, CardFooter, Divider, Button, Modal, ModalContent, ModalBody, useDisclosure, ModalHeader, Input, Tooltip, Switch, Select, SelectItem } from "@nextui-org/react"
-import { Pencil, PlusCircle, Trash } from "react-bootstrap-icons"
+import { Gear, Pencil, PlusCircle, Trash } from "react-bootstrap-icons"
 import client from "../../components/instance"
 import { toast } from "react-toastify"
+import GetLesson from "../../components/functions/GetLesson"
 
 export default function Unit() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -16,6 +17,8 @@ export default function Unit() {
     const editDisclosure = useDisclosure()
     const addLessonDisclosure = useDisclosure()
     const deleteLessonDisclosure = useDisclosure()
+    const editLessonDisclosure = useDisclosure()
+    const editVideoDisclosure = useDisclosure()
     const [loading, setLoading] = useState(true)
     const [access, setAccess] = useState<number | null>(null)
     const [roles, setRoles] = useState<string[] | null>(null)
@@ -29,7 +32,10 @@ export default function Unit() {
     const [active, setActive] = useState<number>(0)
     const [published, setPublished] = useState<boolean>(false)
     const [lessonType, setLessonType] = useState<string>("article")
+    const [publishing, setPublishing] = useState<boolean>(false)
+    const [videoUrl, setVideoUrl] = useState<string>("")
     const { courseId } = useParams()
+    const toastId: any = useRef(null)
     useEffect(() => {
         AccessChecker(-1).then(async (res) => {
             if (res.code === 500) {
@@ -123,7 +129,7 @@ export default function Unit() {
                 type: lessonType,
                 markdown: "",
                 questions: "",
-                video_url: ""
+                videoUrl: lessonType === "video" ? videoUrl : ""
             })
             toast.success(response.data.msg)
         } catch (error: any) {
@@ -143,6 +149,105 @@ export default function Unit() {
                 url: lessonUrl
             })
             toast.success("Successfully deleted lesson.")
+        } catch (error: any) {
+            toast.error(error.response.data.msg)
+        }
+    }
+
+    const publishLesson = async (index: number, published: boolean) => {
+        setPublishing(true)
+        try {
+            toastId.current = toast.loading(published ? "Unpublishing lesson..." : "Publishing lesson...")
+            const unitUrl = courseData.units[active].url
+            const courseUrl = courseId
+            const lessonUrl = courseData.units[active].lessons[index].url
+            const lesson = await GetLesson(courseId!, unitUrl, lessonUrl)
+            console.log({
+                course_url: courseUrl,
+                unit_url: unitUrl,
+                url: lessonUrl,
+                title: title,
+                update_url: lessonUrl,
+                isPublished: !published,
+                type: lesson.data.type,
+                markdown: lesson.data.markdown,
+                questions: lesson.data.questions,
+                videoUrl: lesson.data.videoUrl,
+            })
+            await client.post("/content/edit-lesson", {
+                course_url: courseUrl,
+                unit_url: unitUrl,
+                url: lessonUrl,
+                title: lesson.data.title,
+                update_url: lessonUrl,
+                isPublished: !published,
+                type: lesson.data.type,
+                markdown: lesson.data.markdown,
+                questions: lesson.data.questions,
+                videoUrl: lesson.data.videoUrl,
+            })
+            const res = await GetCourse(courseId!)
+            setCourseData(res.data)
+            toast.update(toastId.current, {
+                render: "Successfully updated lesson.",
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+                onClose: () => {
+                    toastId.current = null
+                }
+            })
+
+        } catch (error: any) {
+            toast.error(error.response.data.msg)
+        }
+    }
+
+    const editLesson = async (index: number) => {
+        setCreating(true)
+        try {
+            const unitUrl = courseData.units[active].url
+            const courseUrl = courseId
+            const lessonUrl = courseData.units[active].lessons[index].url
+            const lesson = await GetLesson(courseId!, unitUrl, lessonUrl)
+            await client.post("/content/edit-lesson", {
+                course_url: courseUrl,
+                unit_url: unitUrl,
+                url: lessonUrl,
+                title: title,
+                update_url: alias,
+                isPublished: lesson.data.isPublished,
+                type: lesson.data.type,
+                markdown: lesson.data.markdown,
+                questions: lesson.data.questions,
+                videoUrl: lesson.data.videoUrl,
+            })
+            toast.success("Successfully edited lesson.")
+        } catch (error: any) {
+            toast.error(error.response.data.msg)
+        }
+    }
+
+    const editVideo = async (index: number) => {
+        setCreating(true)
+        try {
+            const unitUrl = courseData.units[active].url
+            const courseUrl = courseId
+            const lessonUrl = courseData.units[active].lessons[index].url
+            const lesson = await GetLesson(courseId!, unitUrl, lessonUrl)
+            await client.post("/content/edit-lesson", {
+                course_url: courseUrl,
+                unit_url: unitUrl,
+                url: lessonUrl,
+                title: lesson.data.title,
+                update_url: lessonUrl,
+                isPublished: lesson.data.isPublished,
+                type: lesson.data.type,
+                markdown: lesson.data.markdown,
+                questions: lesson.data.questions,
+                videoUrl: videoUrl,
+            })
+            toast.success("Successfully edited video.")
         } catch (error: any) {
             toast.error(error.response.data.msg)
         }
@@ -223,22 +328,36 @@ export default function Unit() {
                             courseData.units[active].lessons.map((item: any, index: number) => (
                                 <Card key={index} className="flex-shrink-0">
                                     <CardBody className="p-5">
-                                        <p>{item.type === "article" || item.type === "video" ? `Lesson ${index + 1}:` : "Assessment:"}</p>
+                                        <p>{item.type === "article" ? `Lesson:` : item.type === "video" ? "Video:" : "Assessment:"}</p>
                                         <p className="text-2xl">{item.title}</p>
                                     </CardBody>
                                     <CardFooter className="flex justify-end gap-x-3">
                                         {
                                             access && access >= 2 ? (
                                                 <>
-                                                    <Switch isSelected={item.isPublished} size="sm">
+                                                    <Switch isDisabled={publishing} isSelected={item.isPublished} size="sm" onClick={() => {
+                                                        publishLesson(index, item.isPublished).then(() => {
+                                                            setPublishing(false)
+                                                        })
+                                                    }}>
                                                         {item.isPublished ? "Published" : "Not Published"}
                                                     </Switch>
+                                                    <Tooltip content="Lesson Settings" closeDelay={0} size="sm">
+                                                        <Gear className="cursor-pointer" onClick={() => {
+                                                            setTarget(index)
+                                                            setTitle(item.title)
+                                                            setAlias(item.url)
+                                                            editLessonDisclosure.onOpen()
+                                                        }} />
+                                                    </Tooltip>
                                                     <Tooltip content="Edit Lesson" color="primary" closeDelay={0} size="sm">
                                                         <Pencil className="hover:text-primary cursor-pointer" onClick={() => {
                                                             if (item.type === "article") {
                                                                 window.location.assign(`/courses/${courseId}/unit/${courseData.units[active].url}/lesson/${item.url}/edit`)
                                                             } else if (item.type === "quiz") {
                                                                 window.location.assign(`/courses/${courseId}/unit/${courseData.units[active].url}/quiz/${item.url}/edit`)
+                                                            } else if (item.type === "video") {
+                                                                editVideoDisclosure.onOpen()
                                                             }
                                                         }} />
                                                     </Tooltip>
@@ -258,6 +377,8 @@ export default function Unit() {
                                                 window.location.assign(`/courses/${courseId}/unit/${courseData.units[active].url}/lesson/${item.url}`)
                                             } else if (item.type === "quiz") {
                                                 window.location.assign(`/courses/${courseId}/unit/${courseData.units[active].url}/quiz/${item.url}`)
+                                            } else if (item.type === "video") {
+                                                window.location.assign(`/courses/${courseId}/unit/${courseData.units[active].url}/video/${item.url}`)
                                             }
                                         }}>Go to Lesson</Button>
                                     </CardFooter>
@@ -303,6 +424,8 @@ export default function Unit() {
                     setTitle("")
                     setCreating(false)
                     setTarget(-1)
+                    setLessonType("article")
+                    setVideoUrl("")
                 }}>
                     <ModalContent>
                         {(onClose) => (
@@ -324,7 +447,16 @@ export default function Unit() {
                                         <SelectItem key="video" value="video">Video</SelectItem>
                                         <SelectItem key="quiz" value="quiz">Quiz</SelectItem>
                                     </Select>
-                                    <Button isDisabled={title.length === 0 || alias.length === 0} color="primary" isLoading={creating} onClick={() => {
+                                    {
+                                        lessonType === "video" ? (
+                                            <Input value={videoUrl} placeholder="Enter Video URL" variant="bordered" labelPlacement="outside" label="Video URL" onChange={(e) => {
+                                                setVideoUrl(e.target.value)
+                                            }} />
+                                        ) : (
+                                            <></>
+                                        )
+                                    }
+                                    <Button isDisabled={title.length === 0 || alias.length === 0 || (videoUrl.length === 0 && lessonType === "video" && !videoUrl.includes("embed"))} color="primary" isLoading={creating} onClick={() => {
                                         createLesson(target).then(() => {
                                             GetCourse(courseId!).then((res) => {
                                                 setCourseData(res.data)
@@ -371,6 +503,65 @@ export default function Unit() {
                                         })
                                     }}>
                                         {creating ? "" : "Edit Unit"}
+                                    </Button>
+                                </ModalBody>
+                            </>
+                        )}
+                    </ModalContent>
+                </Modal>
+                <Modal isOpen={editLessonDisclosure.isOpen} onOpenChange={editLessonDisclosure.onOpenChange} isDismissable={!creating} hideCloseButton={creating} onClose={() => {
+                    setAlias("")
+                    setTitle("")
+                    setCreating(false)
+                }}>
+                    <ModalContent>
+                        {(onClose) => (
+                            <>
+                                <ModalHeader>Edit Lesson</ModalHeader>
+                                <ModalBody className="pb-5 flex flex-col gap-y-5">
+                                    <Input value={title} placeholder="Enter Lesson Title" variant="bordered" labelPlacement="outside" label="Lesson Title" onChange={(e) => {
+                                        setTitle(e.target.value)
+                                        setAlias(e.target.value.toLowerCase().trim().replace(/ /g, "-"))
+                                    }} />
+                                    <Input value={alias} placeholder="Enter Alias" variant="bordered" labelPlacement="outside" label="Alias" onChange={(e) => {
+                                        setAlias(e.target.value)
+                                    }} />
+                                    <Button isDisabled={title.length === 0 || alias.length === 0} color="primary" isLoading={creating} onClick={() => {
+                                        editLesson(target).then(() => {
+                                            GetCourse(courseId!).then((res) => {
+                                                setCourseData(res.data)
+                                                onClose()
+                                            })
+                                        })
+                                    }}>
+                                        {creating ? "" : "Edit Lesson"}
+                                    </Button>
+                                </ModalBody>
+                            </>
+                        )}
+                    </ModalContent>
+                </Modal>
+                <Modal isOpen={editVideoDisclosure.isOpen} onOpenChange={editVideoDisclosure.onOpenChange} isDismissable={!creating} hideCloseButton={creating} onClose={() => {
+                    setVideoUrl("")
+                    setCreating(false)
+                }}>
+                    <ModalContent>
+                        {(onClose) => (
+                            <>
+                                <ModalHeader>Edit Video</ModalHeader>
+                                <ModalBody className="pb-5 flex flex-col gap-y-5">
+                                    <Input value={videoUrl} placeholder="Enter Video Embed URL" variant="bordered" labelPlacement="outside" label="Video Embed URL" onChange={(e) => {
+                                        setVideoUrl(e.target.value)
+                                    }} />
+                                    <Button isDisabled={videoUrl.length === 0 || !videoUrl.includes("embed")} color="primary" isLoading={creating} onClick={() => {
+                                        editVideo(target).then(() => {
+                                            GetCourse(courseId!).then((res) => {
+                                                setCourseData(res.data)
+                                                onClose()
+                                            })
+                                        })
+                                    }}>
+                                        {creating ? "" : "Edit Video"}
                                     </Button>
                                 </ModalBody>
                             </>
