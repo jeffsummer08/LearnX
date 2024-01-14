@@ -54,11 +54,11 @@ export default function StudentDashboard() {
                             <h1 className="text-xl">Your Classes</h1>
                             {
                                 classes.map((item, index) => (
-                                    <h1 className="font-bold select-none cursor-pointer" key={item.code} onClick={() => {
+                                    <p className="font-bold select-none cursor-pointer" key={item.code} onClick={() => {
                                         setActive(index)
                                     }} style={{ color: active === index ? "#006FEE" : "inherit" }}>
                                         {item.name}
-                                    </h1>
+                                    </p>
                                 ))
                             }
                             <Divider />

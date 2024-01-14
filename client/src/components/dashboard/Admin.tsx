@@ -45,7 +45,7 @@ export default function AdminDashboard() {
                 setLoading(false)
             }
         })
-    })
+    }, [])
 
     const validate = () => {
         let valid = true
@@ -134,6 +134,13 @@ export default function AdminDashboard() {
                     description: description,
                     thumbnail: imgUrl.data.url
                 })
+                const response = await GetCourseList()
+                if (response.error) {
+                    toast.error("An unexpected error occurred.")
+                } else {
+                    setCourses(response.data.reverse())
+                    setLoading(false)
+                }
                 toast.success("Course created successfully.", {
                     position: "top-center",
                     autoClose: 1500,
@@ -159,7 +166,7 @@ export default function AdminDashboard() {
                 <div className="w-full h-full flex flex-col pt-5 items-center md:items-start pl-5 pr-5 md:pr-0">
                     <h1 className="text-4xl">Manage Courses</h1>
                     <div className="flex flex-row flex-wrap gap-5 mt-5 pb-5 w-full">
-                        <Card className="w-full lg:w-[32%] bg-gray-300" isPressable onClick={onOpen}>
+                        <Card className="w-full lg:w-[32%] h-[400px] bg-gray-300" isPressable onClick={onOpen}>
                             <CardBody className="w-full h-full items-center justify-center">
                                 <h1 className="text-lg text-gray-500">Create Course</h1>
                                 <PlusCircleFill className="text-lg mt-2 text-gray-500" />
@@ -167,7 +174,9 @@ export default function AdminDashboard() {
                         </Card>
                         {
                             courses.map((course, index) => (
-                                <Card key={index} className="w-full lg:w-[32%] lg:h-[400px] pb-5" isPressable>
+                                <Card key={index} className="w-full lg:w-[32%] h-[400px] pb-5" isPressable onClick={() => {
+                                    window.location.assign(`/courses/${course.url}`)
+                                }}>
                                     <CardHeader className="w-full flex flex-row justify-center h-1/2">
                                         <img alt="thumbnail" src={course.thumbnail} className="rounded-xl object-cover w-full h-full" />
                                     </CardHeader>

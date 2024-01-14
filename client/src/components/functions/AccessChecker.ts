@@ -46,6 +46,7 @@ export default async function AccessChecker(role: number) {
                     }
                 }
             } else {
+                sessionStorage.setItem("returnUrl", window.location.pathname)
                 return {
                     data: userRole,
                     code: 401
