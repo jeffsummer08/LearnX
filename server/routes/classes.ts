@@ -2,6 +2,7 @@ import express, { Request, Response } from "express"
 import db from "../database/database"
 import { NewClass } from "../database/models/class"
 import { join } from "path"
+import { sql } from "kysely"
 
 const router = express.Router()
 
@@ -85,5 +86,18 @@ router.post("/create-class/", async (req: Request, res: Response) => {
     }
 })
 
+router.post("/delete-class/", async (req: Request, res: Response) => {
+    let classQuery = await joinCodeToClass(req.params.join_code)
+    if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
+        await db.updateTable("users").where("id", "in", classQuery.students).set((eb) => ({
+            classes: sql`array_remove(classes, ${classQuery.id})`
+        })).execute()
+    }
+    else{
+        res.status(401).json({
+            msg: "Invalid join code"
+        })
+    }
+})
 
 export default router

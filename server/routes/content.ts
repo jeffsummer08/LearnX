@@ -221,16 +221,24 @@ router.post("/edit-course", async (req: Request, res: Response) => {
                 })
             }
             else{
-                await db.updateTable("courses").where("url", "=", req.body.url).set(<UpdateCourse>{
-                    title: req.body.title,
-                    url: req.body.update_url,
-                    thumbnail: req.body.thumbnail,
-                    description: req.body.description,
-                    isPublished: req.body.isPublished
-                }).execute()
-                res.status(200).json({
-                    msg: "Succesfully edited course"
-                })
+                const courseUrlCheck = await db.selectFrom("courses").selectAll().where("url", "=", req.body.update_url).execute()
+                if(courseUrlCheck.length > 0){
+                    res.status(401).json({
+                        msg: "Update url is taken"
+                    })
+                }
+                else{
+                    await db.updateTable("courses").where("url", "=", req.body.url).set(<UpdateCourse>{
+                        title: req.body.title,
+                        url: req.body.update_url,
+                        thumbnail: req.body.thumbnail,
+                        description: req.body.description,
+                        isPublished: req.body.isPublished
+                    }).execute()
+                    res.status(200).json({
+                        msg: "Succesfully edited course"
+                    })                    
+                }
             }            
         }
         catch{
@@ -292,7 +300,7 @@ router.post("/create-unit", async (req: Request, res: Response) => {
 
                 if(unitExistQuery.length !== 0){
                     res.status(401).json({
-                        msg: "Unit already exists"
+                        msg: "Unit url is taken"
                     })
                 }
                 else{
@@ -336,12 +344,21 @@ router.post("/edit-unit", async (req: Request, res: Response) => {
             }
             else{
                 let unitExistQuery: any[] = []
-                if(courseExistQuery[0].units.length > 0)
+                let updateUnitExistQuery: any[] = []
+                if(courseExistQuery[0].units.length > 0){
                     unitExistQuery = await db.selectFrom("units").selectAll().where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.url).execute()
+                    updateUnitExistQuery = await db.selectFrom("units").selectAll().where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.update_url).execute()
+                }
+
                 console.log(unitExistQuery)
                 if(unitExistQuery.length !== 1){
                     res.status(401).json({
                         msg: "Unit does not exist"
+                    })
+                }
+                else if(updateUnitExistQuery.length > 0){
+                    res.status(401).json({
+                        msg: "Update url is taken"
                     })
                 }
                 else{
@@ -417,10 +434,18 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
                 let unitExistQuery: any[] = []
                 if(courseExistQuery[0].units.length > 0)
                     unitExistQuery = await db.selectFrom("units").selectAll().where("id", "in", courseExistQuery[0].units).where("url", "=", req.body.unit_url).execute()
+                let lessonExistQuery: any[] = []
+                if(unitExistQuery[0].lessons.length > 0)
+                    lessonExistQuery = await db.selectFrom("lessons").select("id").where("id", "in", unitExistQuery[0].lessons).where("url", "=", req.body.url).execute()
 
                 if(unitExistQuery.length !== 1){
                     res.status(401).json({
                         msg: "Invalid unit url/alias, use unit_url"
+                    })
+                }
+                else if(lessonExistQuery.length > 0){
+                    res.status(401).json({
+                        msg: "Lesson url is taken"
                     })
                 }
                 else{
@@ -492,9 +517,19 @@ router.post("/edit-lesson", async (req: Request, res: Response) => {
             if(courseQuery[0].units.length > 0)
                 unitQuery = await db.selectFrom("units").select("lessons").where("id", "in", courseQuery[0].units).where("url", "=", req.body.unit_url).execute()
             
+            let updateLessonExistQuery: any[] = []
+            if(unitQuery[0].lessons.length > 0)
+                updateLessonExistQuery = await db.selectFrom("lessons").select("id").where("id", "in", unitQuery[0].lessons).where("url", "=", req.body.update_url).execute()
             let updateQuery: any[] = []
             let works = true
-            if (courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0){
+
+            if(updateLessonExistQuery.length > 0){
+                res.status(401).json({
+                    msg: "Update url already taken"
+                })
+                works = false;
+            }
+            else if (courseQuery[0].units.length > 0 && unitQuery[0].lessons.length > 0){
                 let lessonValues: UpdateLesson = {
                     title: req.body.title,
                     url: req.body.update_url,
