@@ -90,7 +90,7 @@ router.post("/delete-class/", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
     if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
         await db.updateTable("users").where("id", "in", classQuery.students).set((eb) => ({
-            classes: sql`array_remove(classes, ${classQuery.id})`
+            classes: sql`array_remove(classes, ${classQuery!.id})`
         })).execute()
     }
     else{
