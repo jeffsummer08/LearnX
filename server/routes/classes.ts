@@ -7,7 +7,7 @@ const router = express.Router()
 router.get("/", async (req: Request, res: Response) => {
     let data: any = {}
     if(req.session.isTeacher || !req.session.isStaff || !req.session.isSuperuser){
-        data.ownerOf = (await db.selectFrom("users").where("id", "=", <any> req.session.userId).innerJoin("classes", "classes.teacher", "users.id").select(["classes.id", "classes.name", "classes.students"]).execute()).map(row => {
+        data.ownerOf = (await db.selectFrom("users").where("id", "=", <any> req.session.userId).innerJoin("classes", "classes.teacher", "users.id").select(["classes.id", "classes.name", "classes.students", "classes.timestampCreated"]).execute()).map(row => {
             let code = row.id.toString(16)
             return {
                 name: row.name,

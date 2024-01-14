@@ -17,7 +17,7 @@ initializeApp({
 const bucket = getStorage().bucket()
 const router = express.Router()
 router.get("/course-list", async (req: Request, res: Response) => {
-    const query = await db.selectFrom("courses").selectAll().execute()
+    const query = await (await db.selectFrom("courses").selectAll().execute()).sort((a, b) => a.id - b.id)
     res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
         title: val.title,
         url: val.url,
@@ -37,7 +37,7 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
     else{
         let unitsQuery: any[];
         if(courseQuery[0].units.length > 0){
-            unitsQuery = await db.selectFrom("units").selectAll().where("id", "in", courseQuery[0].units).execute()
+            unitsQuery = (await db.selectFrom("units").selectAll().where("id", "in", courseQuery[0].units).execute()).sort((a, b) => a.id - b.id)
         }
         else{
             unitsQuery = []
@@ -50,7 +50,7 @@ router.get("/course/:course_url", async (req: Request, res: Response) => {
             units: await Promise.all(unitsQuery.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(async val => {
                 let lessonsQuery: any[] = [];
                 if(val.lessons.length > 0)
-                    lessonsQuery = await db.selectFrom("lessons").selectAll().where("id", "in", val.lessons).execute()
+                    lessonsQuery = (await db.selectFrom("lessons").selectAll().where("id", "in", val.lessons).execute()).sort((a, b) => a.id - b.id)
 
                 console.log(lessonsQuery + " " + val.title)
                 return {
