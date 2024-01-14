@@ -497,6 +497,7 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
 })
 
 router.post("/edit-lesson", async (req: Request, res: Response) => {
+    
     if(!req.session.isStaff && !req.session.isSuperuser){
         res.sendStatus(403)
     }

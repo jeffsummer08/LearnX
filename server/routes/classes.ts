@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express"
 import db from "../database/database"
-import { NewClass } from "../database/models/class"
+import { NewClass, UpdateClass } from "../database/models/class"
 import { join } from "path"
 import { sql } from "kysely"
 
@@ -87,7 +87,7 @@ router.post("/create-class/", async (req: Request, res: Response) => {
 })
 
 router.post("/delete-class/", async (req: Request, res: Response) => {
-    let classQuery = await joinCodeToClass(req.params.join_code)
+    let classQuery = await joinCodeToClass(req.body.join_code)
     if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
         await db.updateTable("users").where("id", "in", classQuery.students).set((eb) => ({
             classes: sql`array_remove(classes, ${classQuery.id})`
@@ -96,6 +96,25 @@ router.post("/delete-class/", async (req: Request, res: Response) => {
     else{
         res.status(401).json({
             msg: "Invalid join code"
+        })
+    }
+})
+
+router.post("/edit-class", async (req: Request, res: Response) => {
+    let classQuery = await joinCodeToClass(req.body.join_code)
+    if(!classQuery || classQuery.teacher != req.session.userId && !req.session.isStaff && !req.session.isSuperuser){
+        res.status(401).json({
+            msg: "Invalid join code"
+        })
+    }
+    else if(req.body.name.length > 100){
+        res.status(401).json({
+            msg: "Class name must be less than 100 characters"
+        })
+    }
+    else{
+        await db.updateTable("classes").where("id", "in", classQuery.id).set(<UpdateClass> {
+            name: req.body.name
         })
     }
 })
