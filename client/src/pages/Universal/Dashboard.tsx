@@ -12,7 +12,6 @@ import Nav from "../../components/Nav"
 
 
 export default function Dashboard() {
-    
     const { role } = useParams()
     const [userRole, setUserRole] = useState<string[] | "404" | null>(null)
     const [valid, setValid] = useState<boolean | null>(null)
