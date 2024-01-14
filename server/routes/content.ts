@@ -408,9 +408,9 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
                             markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown) : ""
                         }                            
                     }
-                    else if(lessonValues.type === "quiz" && req.body.questions){
+                    else if(lessonValues.type === "quiz"){
                         lessonValues.content = {
-                            questions: req.body.questions
+                            questions: req.body.questions ? req.body.questions : {}
                         }
                     }
                     else if(lessonValues.type === "video" && req.body.video_url){
