@@ -32,18 +32,23 @@ router.get("/", async (req: Request, res: Response) => {
         memberOf: {}
     }
     if(req.session.isTeacher || req.session.isStaff || req.session.isSuperuser){
-        data.ownerOf = (await db.selectFrom("users").where("users.id", "=", <any> req.session.userId).innerJoin("classes", "classes.teacher", "users.id").select(["classes.id", "classes.name", "classes.students", "classes.timestampCreated"]).execute()).map(row => ({
+        const ownedClassQuery = await db.selectFrom("users").where("users.id", "=", req.session.userId!).innerJoin("classes", "classes.teacher", "users.id").select(["classes.id", "classes.name", "classes.students", "classes.timestampCreated"]).execute()
+        data.ownerOf = ownedClassQuery.map(row => ({
             name: row.name,
             numStudents: row.students.length,
             joinCode: idToJoinCode(row.id, row.timestampCreated.getMilliseconds())
         }))
     }
     if(req.session.isAuthenticated){
-        data.memberOf = (await db.selectFrom("classes").selectAll().where("id", "in", req.session.classes!).execute()).map(row => ({
+        let classQuery: any = []
+        if(req.session.classes!.length > 0)
+            classQuery = await db.selectFrom("classes").selectAll().where("id", "in", req.session.classes!).execute()
+
+        data.memberOf = classQuery.map((row: any) => ({
             name: row.name,
             numStudents: row.students.length,
             joinCode: idToJoinCode(row.id, row.timestampCreated.getMilliseconds())
-        }))        
+        }))  
     }
 
     res.status(200).json(data)
@@ -129,13 +134,15 @@ router.post("/join-class", async (req: Request, res: Response) => {
             msg: "You must be logged in to join a class"
         })
     }
-    else if(!classQuery){
+    else if(!classQuery || req.session.classes!.includes(-classQuery.id)){
         res.status(401).json({
             msg: "Invalid join code"
         })
     }
     else{
-        
+        await db.updateTable("classes").where("id", "in", classQuery.id).set(<UpdateClass> {
+
+        })
     }
 })
 export default router
