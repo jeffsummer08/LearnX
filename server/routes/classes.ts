@@ -140,9 +140,16 @@ router.post("/create-class", async (req: Request, res: Response) => {
 router.post("/delete-class", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
     if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
-        await db.updateTable("users").where("id", "in", classQuery.students).set((eb) => ({
-            classes: sql`array_remove(classes, ${classQuery!.id})`
-        })).execute()
+        if(classQuery.students.length > 0){
+            await db.updateTable("users").where("id", "in", classQuery.students).set((eb) => ({
+                classes: sql`array_remove(classes, ${classQuery!.id})`
+            })).execute()    
+        }
+        await db.deleteFrom("classes").where("id", "=", classQuery.id).execute()
+        res.json({
+            msg: "Succesfully deleted class"
+        })
+        
     }
     else{
         res.status(401).json({
@@ -151,7 +158,7 @@ router.post("/delete-class", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/ban-user/", async (req: Request, res: Response) => {
+router.post("/ban-student/", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
     if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
         await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
