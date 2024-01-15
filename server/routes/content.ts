@@ -23,7 +23,7 @@ initializeApp({
 const bucket = getStorage().bucket()
 const router = express.Router()
 router.get("/course-list", async (req: Request, res: Response) => {
-    const query = await (await db.selectFrom("courses").selectAll().execute()).sort((a, b) => a.id - b.id)
+    const query = (await db.selectFrom("courses").selectAll().execute()).sort((a, b) => a.id - b.id)
     res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
         title: val.title,
         url: val.url,
