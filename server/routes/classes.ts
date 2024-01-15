@@ -56,18 +56,47 @@ router.get("/", async (req: Request, res: Response) => {
 
 router.get("/:join_code", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.params.join_code)
-    if(classQuery && (req.session.userId == classQuery.teacher || req.session.classes!.includes(classQuery.id))){
-        const teacherQuery = await db.selectFrom("users").select(["firstname", "lastname"]).where("id", "=", classQuery.teacher).execute()
-        const studentQuery = await db.selectFrom("users").select(["firstname", "lastname"]).where("id", "in", classQuery.students).execute()
+    if(classQuery && (req.session.userId == classQuery.teacher || req.session.classes!.includes(classQuery.id) || req.session.isStaff || req.session.isSuperuser)){
+        const teacherQuery = await db.selectFrom("users").select(["id", "firstname", "lastname"]).where("id", "=", classQuery.teacher).execute()
+        let studentQuery: any[] = []
+        if(classQuery.students.length > 0)
+            studentQuery = await db.selectFrom("users").select(["id", "firstname", "lastname"]).where("id", "in", classQuery.students).execute()
         res.json({
             teacher: teacherQuery[0].firstname + " " + teacherQuery[0].lastname,
-            students: studentQuery.map(v => v.firstname + " " + v.lastname),
+            students: studentQuery.map(v => ({
+                id: v.id,
+                name: v.firstname + " " + v.lastname
+            })),
+            hasManagePermissions: req.session.userId == classQuery.teacher || req.session.isStaff || req.session.isSuperuser,
             discussionCodes: [12321, 123121, 2132312, 2523541]
         })
     }
     else{
         res.status(401).json({
             msg: "Invalid join code"
+        })
+    }
+})
+
+router.get("/:join_code/view/:student_id", async (req: Request, res: Response) => {
+    let classQuery = await joinCodeToClass(req.params.join_code)
+    if(!classQuery || req.session.userId != classQuery.teacher && !req.session.classes!.includes(classQuery.id) && !req.session.isStaff && !req.session.isSuperuser){
+        res.status(401).json({
+            msg: "Invalid join code"
+        })
+    }
+    else if(req.session.userId != classQuery.teacher && !req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!classQuery.students.includes(parseInt(req.params.student_id))){
+        res.sendStatus(401).json({
+            msg: "User is not in your class"
+        })
+    }
+    else{
+        const progressQuery = await db.selectFrom("users").where("id", "=", parseInt(req.params.student_id)).innerJoin("progress", "users.id", "progress.userId").selectAll().execute()
+        res.json({
+            student: progressQuery[0].firstname + progressQuery[0].lastname
         })
     }
 })
@@ -139,10 +168,29 @@ router.post("/join-class", async (req: Request, res: Response) => {
             msg: "Invalid join code"
         })
     }
-    else{
-        await db.updateTable("classes").where("id", "in", classQuery.id).set(<UpdateClass> {
-
+    else if(classQuery.teacher === req.session.userId){
+        res.status(401).json({
+            msg: "You're the teacher!"
         })
+    }
+    else{
+        const classRes = await db.updateTable("classes").where("id", "=", classQuery.id).set((eb) => ({
+            students: eb("students", "||", <any>`{${req.session.userId}}`)
+        })).execute()
+        const userRes = await db.updateTable("users").where("id", "=", req.session.userId!).set((eb) => ({
+            classes: eb("classes", "||", <any>`{${classQuery.id}}`)
+        })).execute()
+        if(classRes.length === 1){
+            req.session.classes!.push(classQuery.id)
+            res.json({
+                msg: "Succesfully joined class"
+            })
+        }
+        else{
+            res.status(500).json({
+                msg: "Unexpected error occured while joining class"
+            })
+        }
     }
 })
 export default router
