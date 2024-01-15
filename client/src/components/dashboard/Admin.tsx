@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react"
-import { Card, CardBody, CardHeader, Modal, ModalBody, ModalHeader, Input, useDisclosure, ModalContent, Button, ModalFooter, Divider, Textarea } from "@nextui-org/react"
+import { Card, CardBody, CardHeader, Modal, ModalBody, ModalHeader, Input, useDisclosure, ModalContent, Button, ModalFooter, Divider, Textarea, Switch } from "@nextui-org/react"
 import { Pencil, PlusCircleFill, Trash, Upload } from "react-bootstrap-icons"
 import Loading from "../Loading"
 import GetCourseList from "../functions/GetCourseList"
@@ -37,6 +37,7 @@ export default function AdminDashboard() {
             msg: ""
         }
     })
+    const [published, setPublished] = useState<boolean>(false)
     const fileInput = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
@@ -110,7 +111,7 @@ export default function AdminDashboard() {
                 }
             }))
         }
-        if (!img || !imgName) {
+        if (!img && !imgName) {
             valid = false
             setError(prevError => ({
                 ...prevError,
@@ -224,7 +225,8 @@ export default function AdminDashboard() {
                     title: title,
                     description: description,
                     thumbnail: uploadImg,
-                    update_url: alias
+                    update_url: alias,
+                    isPublished: published
                 })
                 const response = await GetCourseList()
                 if (response.error) {
@@ -282,6 +284,7 @@ export default function AdminDashboard() {
                                                 setAlias(course.url)
                                                 setDescription(course.description)
                                                 setImg(course.thumbnail)
+                                                setPublished(course.isPublished)
                                                 editForm.onOpen()
                                             }} />
                                             <Trash className="hover:text-danger cursor-pointer" onClick={() => {
@@ -449,6 +452,7 @@ export default function AdminDashboard() {
                         }
                     })
                     setTarget(-1)
+                    setPublished(false)
                 }}>
                     <ModalContent>
                         {(onClose) => (
@@ -512,6 +516,11 @@ export default function AdminDashboard() {
                                         }
 
                                     }} />
+                                    <Switch isSelected={published} onChange={() => {
+                                        setPublished(prevState => !prevState)
+                                    }}>
+                                        {published ? "Published" : "Not Published"}
+                                    </Switch>
                                 </ModalBody>
                                 <Divider />
                                 <ModalFooter>

@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const database_1 = __importDefault(require("../database/database"));
+const kysely_1 = require("kysely");
 const crypto_1 = __importDefault(require("crypto"));
 const util_1 = __importDefault(require("util"));
 const router = express_1.default.Router();
@@ -30,7 +31,6 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const emailInput = req.body.email;
         const passwordInput = req.body.password;
-        console.log(emailInput + " " + passwordInput);
         const query = yield database_1.default.selectFrom("users").selectAll().where("email", "=", emailInput).execute();
         let authenticated = false;
         if (query.length === 1) {
@@ -38,8 +38,6 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             const passwordHash = query[0]["passwordHash"];
             const isValid = query[0]["isValid"];
             const attemptedHash = yield hashPassword(passwordInput, salt);
-            console.log("Found email in db " + salt + " " + passwordHash);
-            console.log(attemptedHash);
             if (attemptedHash === passwordHash) {
                 authenticated = true;
                 if (isValid) {
@@ -139,6 +137,79 @@ router.get("/logout", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
         }
     });
+}));
+router.post("/reset-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const passwordInput = req.body.password;
+        const query = yield database_1.default.selectFrom("users").selectAll().where("id", "=", req.session.userId).execute();
+        let authenticated = false;
+        if (query.length === 1) {
+            const salt = query[0]["salt"];
+            const passwordHash = query[0]["passwordHash"];
+            const attemptedHash = yield hashPassword(passwordInput, salt);
+            if (attemptedHash === passwordHash) {
+                authenticated = true;
+                const salt = crypto_1.default.randomBytes(16).toString("hex");
+                const passwordHash = yield hashPassword(req.body.new_password, salt);
+                yield database_1.default.updateTable("users").where("id", "=", query[0].id).set({
+                    salt: salt,
+                    passwordHash: passwordHash
+                }).execute();
+                yield (0, kysely_1.sql) `delete from sessions where sess ->> 'userId'='${kysely_1.sql.lit(req.session.userId)}'`.execute(database_1.default);
+                res.json({
+                    msg: "Succesfully reset password"
+                });
+            }
+        }
+        if (!authenticated) {
+            res.status(401).json({
+                msg: "Invalid original password"
+            });
+            console.log("Failed authentication attempt");
+        }
+    }
+    catch (err) {
+        res.status(500).json({
+            msg: "Unable to reset passwords at this time"
+        });
+        console.log(err);
+    }
+}));
+router.post("/deactivate-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const passwordInput = req.body.password;
+        const query = yield database_1.default.selectFrom("users").selectAll().where("id", "=", req.session.userId).execute();
+        let authenticated = false;
+        if (query.length === 1) {
+            const salt = query[0]["salt"];
+            const passwordHash = query[0]["passwordHash"];
+            const attemptedHash = yield hashPassword(passwordInput, salt);
+            if (attemptedHash === passwordHash) {
+                authenticated = true;
+                const salt = crypto_1.default.randomBytes(16).toString("hex");
+                const passwordHash = yield hashPassword(req.body.password, salt);
+                yield database_1.default.updateTable("users").where("id", "=", query[0].id).set({
+                    isValid: false
+                }).execute();
+                yield (0, kysely_1.sql) `delete from sessions where sess ->> 'userId'='${kysely_1.sql.lit(req.session.userId)}'`.execute(database_1.default);
+                res.json({
+                    msg: "Succesfully deactivated account"
+                });
+            }
+        }
+        if (!authenticated) {
+            res.status(401).json({
+                msg: "Invalid original password"
+            });
+            console.log("Failed authentication attempt");
+        }
+    }
+    catch (err) {
+        res.status(500).json({
+            msg: "Unable to deactivate accounts at this time"
+        });
+        console.log(err);
+    }
 }));
 router.get("/user", (req, res) => {
     if (req.session.isAuthenticated) {

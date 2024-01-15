@@ -28,7 +28,6 @@ export default function StudentDashboard() {
                     window.location.assign(`/dashboard`)
                 } else {
                     GetClassList().then((res) => {
-                        console.log(res.data)
                         if (res.data.memberOf.length > 0) {
                             setActive(0)
                         }
@@ -69,8 +68,6 @@ export default function StudentDashboard() {
             GetClass(classes.memberOf[active].joinCode).then((res) => {
                 if (res.error) {
                     toast.error("Invalid class code")
-                } else {
-                    console.log(res.data)
                 }
                 setLoading(false)
             })

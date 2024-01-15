@@ -71,7 +71,6 @@ export default function EditQuiz() {
                         if (res.error) {
                             window.location.assign("/error")
                         } else {
-                            console.log(res.data)
                             if (res.data.questions.length > 0) {
                                 setQuestions(JSON.parse(res.data.questions))
                             }
@@ -267,7 +266,6 @@ export default function EditQuiz() {
                             const newQuestions = [...questions]
                             if (e.target.value === "multiple-choice" || e.target.value === "multi-select") {
                                 if (questions[active].questionType === "multiple-choice" || questions[active].questionType === "multi-select") {
-                                    console.log(questions[active].questionType)
                                     for (let i = 0; i < newQuestions[active].answers.length; i++) {
                                         newQuestions[active].answers[i].answer = questions[active].answers[i].answer
                                         if (i === 0) {

@@ -1,7 +1,7 @@
 // @ts-ignore
-import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider, ModalHeader, Input, ModalFooter, Spinner, CardFooter, Tooltip } from "@nextui-org/react"
-import { Pencil, PersonSlash, PlusCircleFill, Trash } from "react-bootstrap-icons"
-import { useState, useEffect } from "react"
+import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider, ModalHeader, Input, ModalFooter, Spinner, CardFooter, Tooltip, BreadcrumbItem, Breadcrumbs } from "@nextui-org/react"
+import { ChevronLeft, Pencil, PersonSlash, PlusCircleFill, Trash } from "react-bootstrap-icons"
+import { useState, useEffect, Fragment } from "react"
 import Loading from "../Loading"
 import AccessChecker from "../functions/AccessChecker"
 import GetClassList from "../functions/GetClassList"
@@ -37,7 +37,6 @@ export default function TeacherDashboard() {
                     window.location.assign(`/dashboard`)
                 } else {
                     GetClassList().then((res) => {
-                        console.log(res.data)
                         setClasses(res.data)
                         if (res.data.ownerOf.length > 0) {
                             setActive(0)
@@ -56,7 +55,6 @@ export default function TeacherDashboard() {
 
     useEffect(() => {
         if (active >= 0) {
-            console.log("hello")
             GetClass(classes.ownerOf[active].joinCode).then((res) => {
                 if (res.error) {
                     toast.error("Invalid class code")
@@ -214,7 +212,37 @@ export default function TeacherDashboard() {
                                                                                         <Spinner />
                                                                                     </div>
                                                                                 ) : (
-                                                                                    <></>
+                                                                                    <div className="w-full">
+                                                                                        <Breadcrumbs className="cursor-pointer" size="lg">
+                                                                                            <BreadcrumbItem className="cursor-pointer" onClick={() => {
+                                                                                                setStudentView(false)
+                                                                                            }}>
+                                                                                                <ChevronLeft /> Back
+                                                                                            </BreadcrumbItem>
+                                                                                        </Breadcrumbs>
+                                                                                        <Card className="p-2 mt-5">
+                                                                                            <CardHeader className="flex flex-row justify-between items-center">
+                                                                                                <p className="text-2xl">{studentName}</p>
+                                                                                            </CardHeader>
+                                                                                            <CardBody className="overflow-y-auto flex flex-col gap-y-2 max-h-full">
+                                                                                                {
+                                                                                                    studentData.history && studentData.history.length > 0 ? (
+                                                                                                        studentData.history.map((item: any, index: number) => (
+                                                                                                            <Fragment key={index}>
+                                                                                                                <div className="flex flex-row justify-between items-center">
+                                                                                                                    <a className="text-primary" href={`/courses/${item.course_url}/unit/${item.unit_url}/quiz/${item.lesson_url}`}>{item.title}</a>
+                                                                                                                    <p>{item.progress}%</p>
+                                                                                                                </div>
+                                                                                                                <Divider />
+                                                                                                            </Fragment>
+                                                                                                        ))
+                                                                                                    ) : (
+                                                                                                        <h3>This student has completed any assessment yet.</h3>
+                                                                                                    )
+                                                                                                }
+                                                                                            </CardBody>
+                                                                                        </Card>
+                                                                                    </div>
                                                                                 )
                                                                             }
                                                                         </>
@@ -238,10 +266,13 @@ export default function TeacherDashboard() {
                                                                                                 <Button className="w-full bg-[#2731F2] text-white" onClick={() => {
                                                                                                     setStudentView(true)
                                                                                                     setGettingStudent(true)
-                                                                                                    console.log(classes.ownerOf[active].joinCode)
-                                                                                                    console.log(item.id)
+                                                                                                    setStudentName(item.name)
                                                                                                     client.get(`classes/${classes.ownerOf[active].joinCode}/view/${item.id}`).then((res) => {
                                                                                                         setStudentData(res.data)
+                                                                                                        setGettingStudent(false)
+                                                                                                    }).catch((error) => {
+                                                                                                        toast.error(error.response.data.msg)
+                                                                                                        setStudentView(false)
                                                                                                         setGettingStudent(false)
                                                                                                     })
                                                                                                 }}>View Progress</Button>

@@ -77,7 +77,6 @@ router.get("/:join_code", (req, res) => __awaiter(void 0, void 0, void 0, functi
                 name: v.firstname + " " + v.lastname
             })),
             hasManagePermissions: req.session.userId == classQuery.teacher || req.session.isStaff || req.session.isSuperuser,
-            discussionCodes: [12321, 123121, 2132312, 2523541]
         });
     }
     else {
@@ -102,16 +101,16 @@ router.get("/:join_code/view/:student_id", (req, res) => __awaiter(void 0, void 
         });
     }
     else {
-        const progressQuery = yield database_1.default.selectFrom("users").where("id", "=", parseInt(req.params.student_id))
+        const progressQuery = yield database_1.default.selectFrom("users").where("users.id", "=", parseInt(req.params.student_id))
             .innerJoin("progress as p", "users.id", "p.userId")
             .innerJoin("courses as c", "p.courseId", "c.id")
             .innerJoin("lessons as l", "p.lessonId", "l.id")
             .innerJoin("units as u", "p.unitId", "u.id")
-            .select(["users.firstname", "users.lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress", "p.timestampCreated"]).execute();
+            .select(["users.firstname as firstname", "users.lastname as lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress as progress", "p.timestampCreated as timestampCreated", "l.title as title"]).execute();
         res.json({
-            student: progressQuery[0].firstname + " " + progressQuery[0].lastname,
             history: progressQuery.map(val => ({
                 student: val.firstname + " " + val.lastname,
+                title: val.title,
                 course_url: val.course_url,
                 unit_url: val.unit_url,
                 lesson_url: val.lesson_url,
@@ -161,7 +160,7 @@ router.post("/delete-class", (req, res) => __awaiter(void 0, void 0, void 0, fun
         });
     }
 }));
-router.post("/ban-student/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/ban-student", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let classQuery = yield joinCodeToClass(req.body.join_code);
     if (!classQuery || req.session.userId != classQuery.teacher && !req.session.classes.includes(classQuery.id) && !req.session.isStaff && !req.session.isSuperuser) {
         res.status(401).json({
@@ -177,13 +176,19 @@ router.post("/ban-student/", (req, res) => __awaiter(void 0, void 0, void 0, fun
         });
     }
     else {
-        yield database_1.default.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
-            classes: (0, kysely_1.sql) `array_remove(classes, ${classQuery.id})`
+        yield database_1.default.updateTable("classes").where("id", "=", classQuery.id).set((eb) => ({
+            students: (0, kysely_1.sql) `array_remove(students, ${kysely_1.sql.lit(req.body.student_id)})`
         })).execute();
-        yield database_1.default.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
+        yield database_1.default.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
+            classes: (0, kysely_1.sql) `array_remove(classes, ${kysely_1.sql.lit(classQuery.id)})`
+        })).execute();
+        yield database_1.default.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
             classes: eb("classes", "||", `{${-classQuery.id}}`)
         })).execute();
-        database_1.default.executeQuery((0, kysely_1.sql) `delete from sessions where sess ->> 'userId'='${req.body.student_id}'`.compile(database_1.default));
+        yield (0, kysely_1.sql) `delete from sessions where sess ->> 'userId'='${kysely_1.sql.lit(req.body.student_id)}'`.execute(database_1.default);
+        res.json({
+            msg: "Successfully banned student"
+        });
     }
 }));
 router.post("/edit-class", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

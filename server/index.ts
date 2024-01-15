@@ -34,7 +34,7 @@ app.use(session({
         tableName: "sessions",
         createTableIfMissing: true,
     }),
-    secret: "this is a cryptographically random seed!",
+    secret: process.env.COOKIE_SEED!,
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 3600 * 24 }, //one day in ms
     resave: false,

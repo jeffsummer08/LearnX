@@ -42,7 +42,7 @@ router.get("/course-list", (req, res) => __awaiter(void 0, void 0, void 0, funct
 router.get("/course/:course_url", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const courseQuery = (yield database_1.default.selectFrom("courses").selectAll().where("url", "=", req.params.course_url).execute());
     let progressQuery = [];
-    if (req.session.isAuthenticated) {
+    if (req.session.isAuthenticated && courseQuery.length > 0) {
         progressQuery = (yield database_1.default.selectFrom("progress").selectAll().where("userId", "=", req.session.userId).where("courseId", "=", courseQuery[0].id).execute()).sort((a, b) => b.timestampCreated.getTime() - a.timestampCreated.getTime());
     }
     if (courseQuery.length === 0 || !courseQuery[0].isPublished && !req.session.isStaff && !req.session.isSuperuser) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import AccessChecker from "../../components/functions/AccessChecker"
 import Loading from "../../components/Loading"
 import { toast } from "react-toastify"
-//import "../components/animations/slideIn.css"
+import "../../components/animations/slideIn.css"
 
 export default function Home() {
     const [loading, setLoading] = useState(true)
@@ -14,7 +14,6 @@ export default function Home() {
         AccessChecker(-1).then((res) => {
             if (res.code === 200) {
                 setRole(res.data.role)
-                console.log(res.data.firstName)
                 setName(`${res.data.firstName} ${res.data.lastName}`)
             }
             setLoading(false)
@@ -35,8 +34,11 @@ export default function Home() {
             <>
                 <Container>
                     <Nav role={role} name={name}></Nav>
-                    <div className="flex grow flex-col items-center justify-center">
-                        <p className="text-2xl slideIn">Test</p>
+                    <div className="flex flex-col items-center justify-center w-full h-full">
+                        <div className="slideIn flex flex-col items-center justify-center">
+                            <img src="/LogoWoman.png" />
+                            <p className="text-xl">The Future of Internet Safety</p>
+                        </div>
                     </div>
                 </Container>
             </>

@@ -35,7 +35,7 @@ app.use((0, express_session_1.default)({
         tableName: "sessions",
         createTableIfMissing: true,
     }),
-    secret: "this is a cryptographically random seed!",
+    secret: process.env.COOKIE_SEED,
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 3600 * 24 },
     resave: false,

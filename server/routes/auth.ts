@@ -27,8 +27,6 @@ router.post("/login", async (req: Request, res: Response) => {
             const passwordHash = query[0]["passwordHash"]
             const isValid = query[0]["isValid"]
             const attemptedHash = await hashPassword(passwordInput, salt)
-            console.log("Found email in db " + salt + " " + passwordHash)
-            console.log(attemptedHash)
             if (attemptedHash === passwordHash) {
                 authenticated = true;
                 if (isValid) {

@@ -56,7 +56,6 @@ export default function Unit() {
                     } else {
                         setCourseData(course.data)
                         setLoading(false)
-                        console.log(course.data.units[0].lessons)
                     }
                 } else {
                     window.location.assign("/courses")
@@ -118,13 +117,6 @@ export default function Unit() {
         try {
             const unitUrl = courseData.units[index].url
             const courseUrl = courseId
-            console.log({
-                course_url: courseUrl,
-                unit_url: unitUrl,
-                title: title,
-                url: alias,
-                type: lessonType
-            })
             const response = await client.post("/content/create-lesson", {
                 course_url: courseUrl,
                 unit_url: unitUrl,
@@ -166,18 +158,6 @@ export default function Unit() {
             const courseUrl = courseId
             const lessonUrl = courseData.units[active].lessons[index].url
             const lesson = await GetLesson(courseId!, unitUrl, lessonUrl)
-            console.log({
-                course_url: courseUrl,
-                unit_url: unitUrl,
-                url: lessonUrl,
-                title: lesson.data.title,
-                update_url: lessonUrl,
-                isPublished: !published,
-                type: lesson.data.type,
-                markdown: lesson.data.markdown,
-                questions: lesson.data.questions,
-                video_url: lesson.data.videoUrl,
-            })
             await client.post("/content/edit-lesson", {
                 course_url: courseUrl,
                 unit_url: unitUrl,
@@ -454,7 +434,6 @@ export default function Unit() {
                                         setAlias(e.target.value)
                                     }} />
                                     <Select label="Lesson Type" variant="bordered" labelPlacement="outside" defaultSelectedKeys={["article"]} onChange={(e) => {
-                                        console.log(e.target.value)
                                         setLessonType(e.target.value)
                                     }}>
                                         <SelectItem key="article" value="article">Article</SelectItem>

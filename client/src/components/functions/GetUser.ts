@@ -3,7 +3,6 @@ import client from "../instance"
 export default async function GetUser() {
     try {
         const res = await client.get("/auth/user")
-        console.log(res.data)
         return {
             isAuthenticated: res.data.isAuthenticated as boolean,
             isTeacher: res.data.isTeacher as boolean,

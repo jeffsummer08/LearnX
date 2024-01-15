@@ -58,7 +58,6 @@ export default function AuthForm(props: Props) {
     })
     useEffect(() => {
         getUser().then((user) => {
-            console.log(user)
             if (user.error) {
                 window.location.assign("/error")
             } else {
@@ -135,8 +134,7 @@ export default function AuthForm(props: Props) {
                 email: values.email,
                 password: values.password,
                 isTeacher: props.type === "signup" ? props.for === "teacher" : false
-            }).then(res => {
-                console.log(res.data.msg)
+            }).then(() => {
                 window.location.assign("/dashboard")
             }).catch(error => {
                 if (error.response.data.msg) {

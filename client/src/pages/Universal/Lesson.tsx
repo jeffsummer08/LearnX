@@ -85,7 +85,6 @@ export default function Lesson() {
                                         setQuestions(questionsArray)
                                         setAnswers(answerArray)
                                         setGrade(res.data.progress)
-                                        console.log(questionsArray)
                                         setLoading(false)
                                     } else {
                                         window.location.assign(`/courses/${courseId}`)
@@ -133,8 +132,6 @@ export default function Lesson() {
                         index++
                     }
                 }
-                console.log(correctAnswers, totalCorrectAnswers, selectedIncorrectAnswers)
-                console.log((correctAnswers) / (totalCorrectAnswers + selectedIncorrectAnswers))
                 grade += ((correctAnswers) / (totalCorrectAnswers + selectedIncorrectAnswers))
             } else if (questions[i].questionType === "true-false") {
                 for (let j = 0; j < questions[i].answers.length; j++) {
@@ -153,7 +150,6 @@ export default function Lesson() {
         try {
             if (logged) {
                 toastId.current = toast.loading("Submitting quiz...")
-                console.log(questions)
                 const grade = gradeQuiz()
                 const total = questions.length
                 const percent = Math.round((grade / total) * 100)

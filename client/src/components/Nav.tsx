@@ -13,16 +13,8 @@ export default function Nav(props: Props) {
 
     const links = [
         {
-            name: "Student",
-            href: "/"
-        },
-        {
-            name: "Teachers",
-            href: "/"
-        },
-        {
             name: "Courses",
-            href: "/"
+            href: "/courses"
         }
     ]
     async function logout() {
