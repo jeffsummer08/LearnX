@@ -1,6 +1,6 @@
 // @ts-ignore
-import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider, ModalHeader, Input, ModalFooter } from "@nextui-org/react"
-import { Pencil, PlusCircleFill, Trash } from "react-bootstrap-icons"
+import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider, ModalHeader, Input, ModalFooter, Spinner, CardFooter, Tooltip } from "@nextui-org/react"
+import { Pencil, PersonSlash, PlusCircleFill, Trash } from "react-bootstrap-icons"
 import { useState, useEffect } from "react"
 import Loading from "../Loading"
 import AccessChecker from "../functions/AccessChecker"
@@ -13,9 +13,11 @@ export default function TeacherDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const disclosure = useDisclosure()
     const editClass = useDisclosure()
+    const banUserModal = useDisclosure()
     const [name, setName] = useState<string>("")
     const [loading, setLoading] = useState(true)
     const [classes, setClasses] = useState<any>(null)
+    const [activeClass, setActiveClass] = useState<any>(null)
     const [creating, setCreating] = useState<boolean>(false)
     const [active, setActive] = useState<number>(-1)
     const [code, setCode] = useState<string>("")
@@ -23,6 +25,11 @@ export default function TeacherDashboard() {
         error: false,
         msg: ""
     })
+    const [studentName, setStudentName] = useState<string>("")
+    const [studentId, setStudentId] = useState<number>(-1)
+    const [studentView, setStudentView] = useState(false)
+    const [gettingStudent, setGettingStudent] = useState(false)
+    const [studentData, setStudentData] = useState<any>(null)
     useEffect(() => {
         AccessChecker(1).then((res) => {
             if (res.code === 200) {
@@ -54,7 +61,7 @@ export default function TeacherDashboard() {
                 if (res.error) {
                     toast.error("Invalid class code")
                 } else {
-                    console.log(res.data)
+                    setActiveClass(res.data)
                 }
                 setLoading(false)
             })
@@ -119,6 +126,21 @@ export default function TeacherDashboard() {
         }
     }
 
+    const banUser = async () => {
+        setCreating(true)
+        try {
+            const res = await client.post("/classes/ban-student", {
+                join_code: classes.ownerOf[active].joinCode,
+                student_id: studentId
+            })
+            const newClass = await GetClassList()
+            setClasses(newClass.data)
+            toast.success(res.data.msg)
+        } catch (error: any) {
+            toast.error(error.response.data.msg)
+        }
+    }
+
     if (loading) {
         return <Loading />
     } else {
@@ -133,6 +155,7 @@ export default function TeacherDashboard() {
                                 classes.ownerOf.map((item: any, index: any) => (
                                     <p className="font-bold select-none cursor-pointer" key={index} onClick={() => {
                                         setActive(index)
+                                        setActiveClass(null)
                                     }} style={{ color: active === index ? "#006FEE" : "inherit" }}>
                                         {item.name}
                                     </p>
@@ -159,25 +182,98 @@ export default function TeacherDashboard() {
                                                 <p>Class Code:</p>
                                                 <p>{classes.ownerOf[active].joinCode.toUpperCase()}</p>
                                             </div>
-                                            <Pencil className="hover:text-primary cursor-pointer" onClick={() => {
-                                                setName(classes.ownerOf[active].name)
-                                                setCode(classes.ownerOf[active].joinCode)
-                                                editClass.onOpenChange()
-                                            }} />
-                                            <Trash className="hover:text-danger cursor-pointer" onClick={() => {
-                                                setCode(classes.ownerOf[active].joinCode)
-                                                disclosure.onOpenChange()
-                                            }} />
+                                            <Tooltip content="Edit Class" placement="bottom" color="primary" closeDelay={0} size="sm">
+                                                <Pencil className="hover:text-primary cursor-pointer" onClick={() => {
+                                                    setName(classes.ownerOf[active].name)
+                                                    setCode(classes.ownerOf[active].joinCode)
+                                                    editClass.onOpenChange()
+                                                }} />
+                                            </Tooltip>
+                                            <Tooltip content="Delete Class" placement="bottom" color="danger" closeDelay={0} size="sm">
+                                                <Trash className="hover:text-danger cursor-pointer" onClick={() => {
+                                                    setCode(classes.ownerOf[active].joinCode)
+                                                    disclosure.onOpenChange()
+                                                }} />
+                                            </Tooltip>
                                         </div>
                                     </div>
                                     <Divider />
+                                    <div className="w-full h-full">
+                                        {
+                                            activeClass ? (
+                                                <>
+                                                    {
+                                                        activeClass.students.length > 0 ? (
+                                                            <>
+                                                                {
+                                                                    studentView ? (
+                                                                        <>
+                                                                            {
+                                                                                gettingStudent ? (
+                                                                                    <div className="w-full h-full flex flex-col items-center justify-center">
+                                                                                        <Spinner />
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <></>
+                                                                                )
+                                                                            }
+                                                                        </>
+                                                                    ) : (
+                                                                        <div className="flex flex-col md:flex-row md:flex-wrap gap-y-3">
+                                                                            {
+                                                                                activeClass.students.map((item: any, index: number) => (
+                                                                                    <div key={index} className="flex flex-row justify-center w-full md:w-1/4">
+                                                                                        <Card className="p-2 w-[95%] h-full">
+                                                                                            <CardHeader className="text-xl w-full flex flex-row justify-between items-center">
+                                                                                                <p>{item.name}</p>
+                                                                                                <Tooltip content="Ban User" color="danger" closeDelay={0} size="sm">
+                                                                                                    <PersonSlash className="hover:text-danger cursor-pointer" onClick={() => {
+                                                                                                        setStudentId(item.id)
+                                                                                                        setStudentName(item.name)
+                                                                                                        banUserModal.onOpenChange()
+                                                                                                    }} />
+                                                                                                </Tooltip>
+                                                                                            </CardHeader>
+                                                                                            <CardFooter>
+                                                                                                <Button className="w-full bg-[#2731F2] text-white" onClick={() => {
+                                                                                                    setStudentView(true)
+                                                                                                    setGettingStudent(true)
+                                                                                                    client.get(`classes/${activeClass.joinCode}/view/${item.id}`).then((res) => {
+                                                                                                        setStudentData(res.data)
+                                                                                                        setGettingStudent(false)
+                                                                                                    })
+                                                                                                }}>View Progress</Button>
+                                                                                            </CardFooter>
+                                                                                        </Card>
+                                                                                    </div>
+                                                                                ))
+                                                                            }
+                                                                        </div>
+                                                                    )
+
+                                                                }
+                                                            </>
+                                                        ) : (
+                                                            <div className="w-full h-full flex flex-col items-center justify-center">
+                                                                <h3>No students have joined this class yet.</h3>
+                                                            </div>
+                                                        )
+                                                    }
+                                                </>
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center">
+                                                    <Spinner />
+                                                </div>
+                                            )
+                                        }
+                                    </div>
                                 </>
                             ) : (
                                 <></>
                             )
                         }
                     </div>
-                </div>
+                </div >
                 <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={() => {
                     setName("")
                     setCreating(false)
@@ -255,6 +351,29 @@ export default function TeacherDashboard() {
                                         })
                                     }} isLoading={creating}>
                                         {creating ? "" : "Delete Unit"}
+                                    </Button>
+                                </ModalBody>
+                            </>
+                        )}
+                    </ModalContent>
+                </Modal>
+                <Modal isOpen={banUserModal.isOpen} isDismissable={!creating} hideCloseButton={creating} onOpenChange={banUserModal.onOpenChange} onClose={() => {
+                    setStudentId(-1)
+                    setStudentName("")
+                    setCreating(false)
+                }}>
+                    <ModalContent className="text-center">
+                        {(onClose) => (
+                            <>
+                                <ModalBody className="py-5">
+                                    <h1 className="text-lg font-bold">Ban User</h1>
+                                    <p>Are you sure you want to ban {studentName}? This action is irreversible.</p>
+                                    <Button color="danger" onClick={() => {
+                                        banUser().then(() => {
+                                            onClose()
+                                        })
+                                    }} isLoading={creating}>
+                                        {creating ? "" : "Ban User"}
                                     </Button>
                                 </ModalBody>
                             </>
