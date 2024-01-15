@@ -14,7 +14,7 @@ export default function StudentDashboard() {
     const [classes, setClasses] = useState<any>([])
     const [loading, setLoading] = useState(true)
     const [joining, setJoining] = useState<boolean>(false)
-    const [active, setActive] = useState<number>(0)
+    const [active, setActive] = useState<number>(-1)
     const [error, setError] = useState({
         error: false,
         msg: ""
@@ -95,15 +95,23 @@ export default function StudentDashboard() {
                     </div>
                     <div className="w-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
                         <div className="flex flex-row justify-between items-center">
-                            <h3>{classes.memberOf[active].name}</h3>
-                            <div className="flex flex-row items-center gap-x-5">
-                                <div className="flex flex-col items-center">
-                                    <p>Class Code:</p>
-                                    <p>{classes.memberOf[active].joinCode.toUpperCase()}</p>
-                                </div>
-                            </div>
+                            {
+                                active >= 0 ? (
+                                    <>
+                                        <h3>{classes.memberOf[active].name}</h3>
+                                        <div className="flex flex-row items-center gap-x-5">
+                                            <div className="flex flex-col items-center">
+                                                <p>Class Code:</p>
+                                                <p>{classes.memberOf[active].joinCode.toUpperCase()}</p>
+                                            </div>
+                                        </div>
+                                        <Divider />
+                                    </>
+                                ) : (
+                                    <></>
+                                )
+                            }
                         </div>
-                        <Divider />
                     </div>
                 </div>
                 <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={() => {

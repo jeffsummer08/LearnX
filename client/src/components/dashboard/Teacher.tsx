@@ -155,12 +155,12 @@ export default function TeacherDashboard() {
                                                 <p>Class Code:</p>
                                                 <p>{classes.ownerOf[active].joinCode.toUpperCase()}</p>
                                             </div>
-                                            <Pencil onClick={() => {
+                                            <Pencil className="hover:text-primary cursor-pointer" onClick={() => {
                                                 setName(classes.ownerOf[active].name)
                                                 setCode(classes.ownerOf[active].joinCode)
                                                 editClass.onOpenChange()
                                             }} />
-                                            <Trash onClick={() => {
+                                            <Trash className="hover:text-danger cursor-pointer" onClick={() => {
                                                 setCode(classes.ownerOf[active].joinCode)
                                                 disclosure.onOpenChange()
                                             }} />
