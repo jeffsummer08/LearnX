@@ -5,6 +5,7 @@ import { InsertResult } from "kysely"
 import crypto from "crypto"
 import util from "util"
 import { QueryExecutorBase } from "kysely/dist/cjs/query-executor/query-executor-base"
+import { UpdateAclResponse } from "@google-cloud/storage"
 
 const router = express.Router()
 const pbkdf2 = util.promisify(crypto.pbkdf2)
@@ -19,7 +20,6 @@ router.post("/login", async (req: Request, res: Response) => {
     try {
         const emailInput = req.body.email
         const passwordInput = req.body.password
-        console.log(emailInput + " " + passwordInput);
         const query = await db.selectFrom("users").selectAll().where("email", "=", emailInput).execute();
         let authenticated = false;
         if (query.length === 1) {
@@ -135,6 +135,48 @@ router.get("/logout", async (req: Request, res: Response) => {
         }
     });
 })
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+    try {
+        const passwordInput = req.body.password
+        const query = await db.selectFrom("users").selectAll().where("id", "=", req.session.userId!).execute();
+        let authenticated = false;
+        if (query.length === 1) {
+            const salt = query[0]["salt"]
+            const passwordHash = query[0]["passwordHash"]
+            const attemptedHash = await hashPassword(passwordInput, salt)
+            console.log("Found email in db " + salt + " " + passwordHash)
+            console.log(attemptedHash)
+            if (attemptedHash === passwordHash) {
+                authenticated = true;
+                const salt = crypto.randomBytes(16).toString("hex")
+                const passwordHash = await hashPassword(req.body.password, salt)
+                
+                db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
+                    salt: salt,
+                    passwordHash: passwordHash
+                })
+                res.json({
+                    msg: "Succesfully reset password"
+                })
+
+            }
+        }
+        if (!authenticated) {
+            res.status(401).json({
+                msg: "Invalid original password"
+            })
+            console.log("Failed authentication attempt")
+        }
+    }
+    catch (err) {
+        res.status(500).json({
+            msg: "Unable to reset passwords at this time"
+        })
+        console.log(err)
+    }
+})
+
 
 router.get("/user", (req: Request, res: Response) => {
     if (req.session.isAuthenticated) {
