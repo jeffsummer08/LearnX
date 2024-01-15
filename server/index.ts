@@ -17,7 +17,7 @@ const dbPool = new Pool({
     max: 1
 })
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: true,
     optionsSuccessStatus: 200,
     credentials: true
 }))
@@ -33,7 +33,7 @@ app.use(session({
     }),
     secret: "this is a cryptographically random seed!",
     saveUninitialized: false,
-    cookie: {maxAge: 1000 * 3600 * 24}, //one day in ms
+    cookie: {maxAge: 1000 * 3600 * 24, sameSite: "none"}, //one day in ms
     resave: false,
     rolling: true
 }))
