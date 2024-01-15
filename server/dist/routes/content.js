@@ -30,7 +30,7 @@ require("dotenv/config");
 const bucket = (0, storage_1.getStorage)().bucket();
 const router = express_1.default.Router();
 router.get("/course-list", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const query = yield (yield database_1.default.selectFrom("courses").selectAll().execute()).sort((a, b) => a.id - b.id);
+    const query = (yield database_1.default.selectFrom("courses").selectAll().execute()).sort((a, b) => a.id - b.id);
     res.json(query.filter(val => val.isPublished || req.session.isStaff || req.session.isSuperuser).map(val => ({
         title: val.title,
         url: val.url,
