@@ -96,7 +96,7 @@ router.get("/:join_code/view/:student_id", async (req: Request, res: Response) =
     else{
         const progressQuery = await db.selectFrom("users").where("id", "=", parseInt(req.params.student_id)).innerJoin("progress", "users.id", "progress.userId").selectAll().execute()
         res.json({
-            student: progressQuery[0].firstname + progressQuery[0].lastname
+            student: progressQuery[0].firstname + " " + progressQuery[0].lastname
         })
     }
 })
@@ -177,8 +177,8 @@ router.post("/join-class", async (req: Request, res: Response) => {
         const classRes = await db.updateTable("classes").where("id", "=", classQuery.id).set((eb) => ({
             students: eb("students", "||", <any>`{${req.session.userId}}`)
         })).execute()
-        const userRes = await db.updateTable("users").where("id", "=", req.session.userId!).set((eb) => ({
-            classes: eb("classes", "||", <any>`{${classQuery.id}}`)
+        await db.updateTable("users").where("id", "=", req.session.userId!).set((eb) => ({
+            classes: eb("classes", "||", <any>`{${classQuery!.id}}`)
         })).execute()
         if(classRes.length === 1){
             req.session.classes!.push(classQuery.id)
