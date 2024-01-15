@@ -1,4 +1,4 @@
-import express, { Request, Response, Express } from "express"
+import express, { Express } from "express"
 import path from "path"
 import authRoutes from "./routes/auth"
 import contentRoutes from "./routes/content"
@@ -8,10 +8,12 @@ import cors from "cors"
 import "dotenv/config"
 import { Pool } from "pg"
 import connectPgSimple from "connect-pg-simple"
-import { SessionOptions } from "http2"
 
 const app: Express = express()
 app.use(express.json({ limit: "10mb" }))
+app.use(express.static(path.join(__dirname, "./client")))
+app.use(express.json())
+app.use("/static", express.static(path.join(__dirname, "./client/assets")))
 
 const dbPool = new Pool({
     connectionString: process.env.DATABASE_STRING,
@@ -34,15 +36,17 @@ app.use(session({
     }),
     secret: "this is a cryptographically random seed!",
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 3600 * 24, sameSite: "none", secure: true, httpOnly: true }, //one day in ms
+    cookie: { maxAge: 1000 * 3600 * 24 }, //one day in ms
     resave: false,
-    rolling: true,
+    rolling: true
 }))
-
 
 app.use('/auth', authRoutes)
 app.use('/content', contentRoutes)
 app.use('/classes', classRoutes)
+app.get("*", (_req, res) => {
+    res.sendFile(path.join(__dirname, "./client", "index.html"))
+})
 
 app.listen(8080, () => {
     console.log("Server on http://localhost:8080")
