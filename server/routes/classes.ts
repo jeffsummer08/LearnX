@@ -103,7 +103,6 @@ router.get("/:join_code/view/:student_id", async (req: Request, res: Response) =
         res.json({
             student: progressQuery[0].firstname + " " + progressQuery[0].lastname,
             history: progressQuery.map(val => ({
-                student: val.firstname + " " + val.lastname,
                 title: val.title,
                 course_url: val.course_url,
                 unit_url: val.unit_url,
