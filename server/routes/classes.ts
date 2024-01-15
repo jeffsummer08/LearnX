@@ -101,8 +101,8 @@ router.get("/:join_code/view/:student_id", async (req: Request, res: Response) =
             .innerJoin("units as u", "p.unitId", "u.id")
             .select(["users.firstname as firstname", "users.lastname as lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress as progress", "p.timestampCreated as timestampCreated", "l.title as title"]).execute()
         res.json({
-            student: progressQuery[0].firstname + " " + progressQuery[0].lastname,
             history: progressQuery.map(val => ({
+                student: val.firstname + " " + val.lastname,
                 title: val.title,
                 course_url: val.course_url,
                 unit_url: val.unit_url,
@@ -173,6 +173,9 @@ router.post("/ban-student", async (req: Request, res: Response) => {
         })
     }
     else{
+        await db.updateTable("classes").where("id", "=", classQuery!.id).set((eb) => ({
+            students: sql`array_remove(students, ${sql.lit(req.body.student_id)})`
+        })).execute()
         await db.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
             classes: sql`array_remove(classes, ${sql.lit(classQuery!.id)})`
         })).execute()
