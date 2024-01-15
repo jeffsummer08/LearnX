@@ -14,7 +14,9 @@ export default function Error(props: Props) {
         AccessChecker(-1).then((res) => {
             if (res.code === 200) {
                 setName(`${res.data.firstName} ${res.data.lastName}`)
-                setRole(res.data.role)
+                if (res.data.role.length > 0) {
+                    setRole(res.data.role)
+                }
             }
         })
     }, [])

@@ -12,6 +12,7 @@ import { Divider, RadioGroup, Radio, Checkbox, Card, CardBody, CardHeader, CardF
 import { ChevronLeft } from "react-bootstrap-icons"
 import { toast } from "react-toastify"
 import client from "../../components/instance"
+import Error from "../Universal/Error"
 
 export default function Lesson() {
     const [loading, setLoading] = useState<boolean>(true)
@@ -35,6 +36,7 @@ export default function Lesson() {
     const [grade, setGrade] = useState<number>(0)
     const [logged, setLogged] = useState<boolean>(true)
     const [startQuiz, setStartQuiz] = useState<boolean>(false)
+    const [found, setFound] = useState<boolean>(true)
     const toastId = useRef<any>(null)
 
     useEffect(() => {
@@ -43,46 +45,60 @@ export default function Lesson() {
                 setName(`${res.data.firstName} ${res.data.lastName}`)
                 setRole(res.data.role)
                 setLogged(true)
-                GetCourse(courseId!).then((course) => {
-                    setCourseData(course.data)
-                    setActive(course.data.units[course.data.units.findIndex((i: any) => i.url === unitId)].lessons.findIndex((i: any) => i.url === lessonId))
-                    GetLesson(courseId!, unitId!, lessonId!).then((res: { error: boolean, data: any }) => {
-                        if (res.error) {
-
-                        } else {
-                            setContent(res.data)
-                            if (res.data.type === "article") {
-                                setContent((prevState: any) => ({
-                                    ...prevState,
-                                    markdown: prevState.markdown.replace(/(<img("[^"]*"|[^\/">])*)>/gi, "$1/>")
-                                }))
-                                setLoading(false)
-                            } else if (res.data.type === "quiz") {
-                                console.log(res.data)
-                                if (res.data.questions.length > 0) {
-                                    let questionsArray = JSON.parse(res.data.questions)
-                                    let answerArray: { question: string, answer: string[], saved: boolean }[] = []
-                                    for (let i = 0; i < questionsArray.length; i++) {
-                                        answerArray.push({ question: questionsArray[i].question, answer: [], saved: false })
-                                    }
-                                    setQuestions(questionsArray)
-                                    setAnswers(answerArray)
-                                    setGrade(res.data.progress)
-                                    console.log(questionsArray)
-                                    setLoading(false)
-                                } else {
-                                    window.location.assign(`/courses/${courseId}`)
-                                }
-                            } else if (res.data.type === "video") {
-                                setVideoUrl(res.data.videoUrl)
-                                setLoading(false)
-                            }
-                        }
-                    })
-                })
             } else if (res.code === 500) {
                 window.location.assign("/error")
             }
+            GetCourse(courseId!).then((course) => {
+                if (!course) {
+                    setFound(false)
+                    setLoading(false)
+                } else {
+                    setCourseData(course.data)
+                    if (!course.data.units[course.data.units.findIndex((i: any) => i.url === unitId)]) {
+                        setFound(false)
+                        setLoading(false)
+                    } else {
+                        setActive(course.data.units[course.data.units.findIndex((i: any) => i.url === unitId)].lessons.findIndex((i: any) => i.url === lessonId))
+                        GetLesson(courseId!, unitId!, lessonId!).then((res: { error: boolean, data: any }) => {
+                            if (res.error) {
+                                setFound(false)
+                                setLoading(false)
+                            } else {
+                                if (!res.data) {
+                                    setFound(false)
+                                    setLoading(false)
+                                }
+                                setContent(res.data)
+                                if (res.data.type === "article") {
+                                    setContent((prevState: any) => ({
+                                        ...prevState,
+                                        markdown: prevState.markdown.replace(/(<img("[^"]*"|[^\/">])*)>/gi, "$1/>")
+                                    }))
+                                    setLoading(false)
+                                } else if (res.data.type === "quiz") {
+                                    if (res.data.questions.length > 0) {
+                                        let questionsArray = JSON.parse(res.data.questions)
+                                        let answerArray: { question: string, answer: string[], saved: boolean }[] = []
+                                        for (let i = 0; i < questionsArray.length; i++) {
+                                            answerArray.push({ question: questionsArray[i].question, answer: [], saved: false })
+                                        }
+                                        setQuestions(questionsArray)
+                                        setAnswers(answerArray)
+                                        setGrade(res.data.progress)
+                                        console.log(questionsArray)
+                                        setLoading(false)
+                                    } else {
+                                        window.location.assign(`/courses/${courseId}`)
+                                    }
+                                } else if (res.data.type === "video") {
+                                    setVideoUrl(res.data.videoUrl)
+                                    setLoading(false)
+                                }
+                            }
+                        })
+                    }
+                }
+            })
         })
     }, [])
 
@@ -171,6 +187,8 @@ export default function Lesson() {
 
     if (loading) {
         return <Loading />
+    } else if (!found) {
+        return <Error type="404" />
     } else {
         return (
             <Container>
@@ -225,7 +243,7 @@ export default function Lesson() {
                             content.type === "article" ? (
                                 <>
                                     <h1 className="pb-5">{courseData.units[courseData.units.findIndex((i: any) => i.url === unitId)].lessons[active].title}</h1>
-                                    <Markdown rehypePlugins={[rehypeRaw]}>{content.markdown}</Markdown>
+                                    <Markdown rehypePlugins={[rehypeRaw]} className="textEditor">{content.markdown}</Markdown>
                                 </>
                             ) : (
                                 <></>

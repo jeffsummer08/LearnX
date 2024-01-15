@@ -1,5 +1,5 @@
 import { Input, Button, Card, CardBody } from "@nextui-org/react"
-import { useState, useEffect, FormEvent } from "react"
+import { useState, useEffect, ChangeEvent } from "react"
 import getUser from "./functions/GetUser"
 import client from "./instance"
 import { Eye, EyeSlash, ExclamationCircle } from "react-bootstrap-icons"
@@ -7,7 +7,8 @@ import Loading from "./Loading"
 import validate from "./functions/Validate"
 
 interface Props {
-    type: "login" | "signup"
+    type: "login" | "signup",
+    for?: "student" | "teacher"
 }
 
 export default function AuthForm(props: Props) {
@@ -75,7 +76,7 @@ export default function AuthForm(props: Props) {
             [parameter]: !prevState[parameter]
         }))
     }
-    function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: FormEvent<HTMLInputElement>) {
+    function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: ChangeEvent<HTMLInputElement>) {
         const value = e.target.value
         setValues(prevState => ({
             ...prevState,
@@ -132,7 +133,8 @@ export default function AuthForm(props: Props) {
                 firstname: values.firstname,
                 lastname: values.lastname,
                 email: values.email,
-                password: values.password
+                password: values.password,
+                isTeacher: props.type === "signup" ? props.for === "teacher" : false
             }).then(res => {
                 console.log(res.data.msg)
                 window.location.assign("/dashboard")

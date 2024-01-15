@@ -10,6 +10,7 @@ import GetClass from "../functions/GetClass"
 
 export default function TeacherDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const disclosure = useDisclosure()
     const editClass = useDisclosure()
     const [name, setName] = useState<string>("")
     const [loading, setLoading] = useState(true)
@@ -63,6 +64,7 @@ export default function TeacherDashboard() {
             })
             const newClass = await GetClassList()
             setClasses(newClass.data)
+            setActive(0)
             toast.success(res.data.msg)
             return true
         } catch (error: any) {
@@ -91,6 +93,23 @@ export default function TeacherDashboard() {
                 error: true,
                 msg: error.data.response.msg
             })
+            return false
+        }
+    }
+
+    const handleDelete = async () => {
+        setCreating(true)
+        try {
+            const res = await client.post("/classes/delete-class", {
+                join_code: classes.ownerOf[active].joinCode
+            })
+            const newClass = await GetClassList()
+            setClasses(newClass.data)
+            toast.success(res.data.msg)
+            return true
+        } catch (error: any) {
+            setCreating(false)
+            toast.error(error.response.data.msg)
             return false
         }
     }
@@ -124,13 +143,13 @@ export default function TeacherDashboard() {
                             </Button>
                         </div>
                     </div>
-                    <div className="w-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
+                    <div className="w-full h-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
                         {
                             active >= 0 ? (
                                 <>
                                     <div className="flex flex-row justify-between items-center">
                                         <h3>{classes.ownerOf[active].name}</h3>
-                                        <div className="flex flex-row items-center gap-x-3">
+                                        <div className="flex flex-row items-center gap-x-5">
                                             <div className="flex flex-col items-center">
                                                 <p>Class Code:</p>
                                                 <p>{classes.ownerOf[active].joinCode.toUpperCase()}</p>
@@ -140,7 +159,10 @@ export default function TeacherDashboard() {
                                                 setCode(classes.ownerOf[active].joinCode)
                                                 editClass.onOpenChange()
                                             }} />
-                                            <Trash />
+                                            <Trash onClick={() => {
+                                                setCode(classes.ownerOf[active].joinCode)
+                                                disclosure.onOpenChange()
+                                            }} />
                                         </div>
                                     </div>
                                     <Divider />
@@ -203,6 +225,32 @@ export default function TeacherDashboard() {
                                             }
                                         })
                                     }}>{!creating && "Edit Class"}</Button>
+                                </ModalBody>
+                            </>
+                        )}
+                    </ModalContent>
+                </Modal>
+                <Modal isOpen={disclosure.isOpen} isDismissable={!creating} hideCloseButton={creating} onOpenChange={disclosure.onOpenChange} onClose={() => {
+                    if (!(active === 0)) {
+                        setActive(prevActive => prevActive - 1)
+                    }
+                    setCreating(false)
+                }}>
+                    <ModalContent className="text-center">
+                        {(onClose) => (
+                            <>
+                                <ModalBody className="py-5">
+                                    <h1 className="text-lg font-bold">Delete Unit</h1>
+                                    <p>Are you sure you want to delete this unit?</p>
+                                    <Button color="danger" onClick={() => {
+                                        handleDelete().then((res) => {
+                                            if (res === true) {
+                                                onClose()
+                                            }
+                                        })
+                                    }} isLoading={creating}>
+                                        {creating ? "" : "Delete Unit"}
+                                    </Button>
                                 </ModalBody>
                             </>
                         )}

@@ -23,7 +23,7 @@ export default function Unit() {
     const [loading, setLoading] = useState(true)
     const [access, setAccess] = useState<number | null>(null)
     const [roles, setRoles] = useState<string[] | null>(null)
-    const [name, setName] = useState<string>("")
+    const [name, setName] = useState<string | null>(null)
     const [courseData, setCourseData] = useState<any>(null)
     const [title, setTitle] = useState<string>("")
     const [alias, setAlias] = useState<string>("")
@@ -44,12 +44,14 @@ export default function Unit() {
                 window.location.assign("/error")
             } else {
                 setAccess(res.data.level)
-                setRoles(res.data.role)
+                if (res.data.role.length > 0) {
+                    setRoles(res.data.role)
+                }
                 setName(res.data.firstName + " " + res.data.lastName)
                 if (courseId) {
                     const course = await GetCourse(courseId)
                     if (course.error) {
-                       setFound(false)
+                        setFound(false)
                     } else {
                         setCourseData(course.data)
                         setLoading(false)

@@ -72,9 +72,13 @@ export default function EditLesson() {
 
     const saveLesson = async () => {
         const markdown = getMarkdown()
+        setOriginalContent((prevState: any) => ({
+            ...prevState,
+            markdown: markdown
+        }))
         try {
             toast.promise(
-                client.post("content/edit-lesson", {
+                client.post("/content/edit-lesson", {
                     type: "article",
                     markdown: markdown,
                     title: lessonTitle,

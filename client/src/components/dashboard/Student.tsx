@@ -3,11 +3,14 @@ import { PlusCircleFill } from "react-bootstrap-icons"
 import { useState, useEffect } from "react"
 import Loading from "../Loading"
 import AccessChecker from "../functions/AccessChecker"
-import GetClass from "../functions/GetClassList"
+import GetClassList from "../functions/GetClassList"
+import client from "../instance"
+import { toast } from "react-toastify"
 
 export default function StudentDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const [code, setCode] = useState<string>("")
+    const [classes, setClasses] = useState<any>([])
     const [loading, setLoading] = useState(true)
     const [joining, setJoining] = useState<boolean>(false)
     const [active, setActive] = useState<number>(0)
@@ -15,23 +18,18 @@ export default function StudentDashboard() {
         error: false,
         msg: ""
     })
-    const [role, setRole] = useState<string[]>([])
-    const [name, setName] = useState<string>("")
-    const handleRefresh = (code: number) => {
 
-    }
     useEffect(() => {
         AccessChecker(0).then((res) => {
             if (res.code === 200) {
                 if (res.data.level > 0 && res.data.level < 3) {
                     window.location.assign(`/dashboard`)
                 } else {
-                    GetClass().then((res) => {
+                    GetClassList().then((res) => {
                         console.log(res.data)
+                        setClasses(res.data)
+                        setLoading(false)
                     })
-                    setRole(res.data.role)
-                    setName(`${res.data.firstName} ${res.data.lastName}`)
-                    setLoading(false)
                 }
             } else if (res.code === 401) {
                 window.location.assign("/login")
@@ -40,23 +38,27 @@ export default function StudentDashboard() {
             }
         })
     }, [])
-    const classes = [
-        {
-            teacher: "KYLE MOTLEY",
-            name: "Advanced Cybersecurity",
-            code: "ABC123"
-        },
-        {
-            teacher: "SARAH JONES",
-            name: "Basic Computer Safety",
-            code: "DEF456"
-        },
-        {
-            teacher: "DARSH PODDAR",
-            name: "Intro to Cybersecurity",
-            code: "GHI789"
+
+    const handleJoin = async () => {
+        setJoining(true)
+        try {
+            const res = await client.post("/classes/join-class", {
+                join_code: code.toLowerCase()
+            })
+            const newClasses = await GetClassList()
+            setClasses(newClasses.data)
+            toast.success(res.data.msg)
+            return true
+        } catch (error: any) {
+            setError({
+                error: true,
+                msg: error.response.data.msg
+            })
+            setJoining(false)
+            return false
         }
-    ]
+    }
+
     if (loading) {
         return <Loading />
     } else {
@@ -68,23 +70,39 @@ export default function StudentDashboard() {
                             <h1 className="text-xl font-bold">Your Classes</h1>
                             <Divider />
                             {
-                                classes.map((item, index) => (
-                                    <p className="font-bold select-none cursor-pointer" key={item.code} onClick={() => {
+                                classes.memberOf.map((item: any, index: number) => (
+                                    <p className="font-bold select-none cursor-pointer" key={index} onClick={() => {
                                         setActive(index)
                                     }} style={{ color: active === index ? "#006FEE" : "inherit" }}>
                                         {item.name}
                                     </p>
                                 ))
                             }
+                            {
+                                classes.memberOf.length === 0 && (
+                                    <h3>
+                                        Join a class
+                                    </h3>
+                                )
+                            }
                             <Divider />
                             <Button onClick={onOpen} className="w-full flex-shrink-0" color="primary">
                                 <PlusCircleFill />
-                                Add new class
+                                Join new class
                             </Button>
                         </div>
                     </div>
                     <div className="w-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
-
+                        <div className="flex flex-row justify-between items-center">
+                            <h3>{classes.memberOf[active].name}</h3>
+                            <div className="flex flex-row items-center gap-x-5">
+                                <div className="flex flex-col items-center">
+                                    <p>Class Code:</p>
+                                    <p>{classes.memberOf[active].joinCode.toUpperCase()}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <Divider />
                     </div>
                 </div>
                 <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={() => {
@@ -92,7 +110,7 @@ export default function StudentDashboard() {
                     setJoining(false)
                 }} isDismissable={!joining} hideCloseButton={joining}>
                     <ModalContent>
-                        {(_onClose) => (
+                        {(onClose) => (
                             <>
                                 <ModalBody className="pt-7 pb-7">
                                     <div className="flex flex-col items-center justify-center">
@@ -112,8 +130,11 @@ export default function StudentDashboard() {
                                             error: false,
                                             msg: ""
                                         })
-                                        // handleJoin()
-                                        setJoining(true)
+                                        handleJoin().then((res) => {
+                                            if (res) {
+                                                onClose()
+                                            }
+                                        })
                                     }}>{!joining && "Join Class"}</Button>
                                 </ModalBody>
                             </>
