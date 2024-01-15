@@ -69,7 +69,6 @@ router.get("/:join_code", async (req: Request, res: Response) => {
                 name: v.firstname + " " + v.lastname
             })),
             hasManagePermissions: req.session.userId == classQuery.teacher || req.session.isStaff || req.session.isSuperuser,
-            discussionCodes: [12321, 123121, 2132312, 2523541]
         })
     }
     else{
