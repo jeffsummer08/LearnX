@@ -99,11 +99,12 @@ router.get("/:join_code/view/:student_id", async (req: Request, res: Response) =
             .innerJoin("courses as c", "p.courseId", "c.id")
             .innerJoin("lessons as l", "p.lessonId", "l.id")
             .innerJoin("units as u", "p.unitId", "u.id")
-            .select(["users.firstname", "users.lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress", "p.timestampCreated"]).execute()
+            .select(["users.firstname", "users.lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress", "p.timestampCreated", "l.title"]).execute()
         res.json({
             student: progressQuery[0].firstname + " " + progressQuery[0].lastname,
             history: progressQuery.map(val => ({
                 student: val.firstname + " " + val.lastname,
+                title: val.title,
                 course_url: val.course_url,
                 unit_url: val.unit_url,
                 lesson_url: val.lesson_url,
