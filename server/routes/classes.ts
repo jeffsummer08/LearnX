@@ -94,12 +94,12 @@ router.get("/:join_code/view/:student_id", async (req: Request, res: Response) =
         })
     }
     else{
-        const progressQuery = await db.selectFrom("users").where("id", "=", parseInt(req.params.student_id))
+        const progressQuery = await db.selectFrom("users").where("users.id", "=", parseInt(req.params.student_id))
             .innerJoin("progress as p", "users.id", "p.userId")
             .innerJoin("courses as c", "p.courseId", "c.id")
             .innerJoin("lessons as l", "p.lessonId", "l.id")
             .innerJoin("units as u", "p.unitId", "u.id")
-            .select(["users.firstname", "users.lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress", "p.timestampCreated", "l.title"]).execute()
+            .select(["users.firstname as firstname", "users.lastname as lastname", "c.url as course_url", "u.url as unit_url", "l.url as lesson_url", "p.progress as progress", "p.timestampCreated as timestampCreated", "l.title as title"]).execute()
         res.json({
             student: progressQuery[0].firstname + " " + progressQuery[0].lastname,
             history: progressQuery.map(val => ({
@@ -176,7 +176,7 @@ router.post("/ban-student", async (req: Request, res: Response) => {
         await db.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
             classes: sql`array_remove(classes, ${sql.lit(classQuery!.id)})`
         })).execute()
-        await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
+        await db.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
             classes: eb("classes", "||", <any>`{${-classQuery!.id}}`)
         })).execute()
         await sql`delete from sessions where sess ->> 'userId'='${sql.lit(req.body.student_id!)}'`.execute(db)

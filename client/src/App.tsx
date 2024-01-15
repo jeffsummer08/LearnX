@@ -12,6 +12,7 @@ import { ToastContainer } from "react-toastify"
 import EditQuiz from "./pages/Admin/EditQuiz"
 import TeacherSignup from "./pages/Teacher/TeacherSignup"
 import Settings from "./pages/Universal/Settings"
+import CourseSearch from "./pages/Universal/CourseSearch"
 
 export default function App() {
   const router = createBrowserRouter([
@@ -43,6 +44,10 @@ export default function App() {
     {
       path: "/settings",
       element: <Settings />
+    },
+    {
+      path: "/courses",
+      element: <CourseSearch />
     },
     {
       path: "/error",

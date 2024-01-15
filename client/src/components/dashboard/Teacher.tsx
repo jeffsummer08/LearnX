@@ -238,7 +238,9 @@ export default function TeacherDashboard() {
                                                                                                 <Button className="w-full bg-[#2731F2] text-white" onClick={() => {
                                                                                                     setStudentView(true)
                                                                                                     setGettingStudent(true)
-                                                                                                    client.get(`classes/${activeClass.joinCode}/view/${item.id}`).then((res) => {
+                                                                                                    console.log(classes.ownerOf[active].joinCode)
+                                                                                                    console.log(item.id)
+                                                                                                    client.get(`classes/${classes.ownerOf[active].joinCode}/view/${item.id}`).then((res) => {
                                                                                                         setStudentData(res.data)
                                                                                                         setGettingStudent(false)
                                                                                                     })
