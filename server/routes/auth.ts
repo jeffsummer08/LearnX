@@ -148,7 +148,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
             if (attemptedHash === passwordHash) {
                 authenticated = true;
                 const salt = crypto.randomBytes(16).toString("hex")
-                const passwordHash = await hashPassword(req.body.password, salt)
+                const passwordHash = await hashPassword(req.body.new_password, salt)
                 
                 db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
                     salt: salt,
