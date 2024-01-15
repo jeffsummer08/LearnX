@@ -190,9 +190,9 @@ router.post("/deactivate-account", async (req: Request, res: Response) => {
                 const salt = crypto.randomBytes(16).toString("hex")
                 const passwordHash = await hashPassword(req.body.password, salt)
                 
-                db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
+                await db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
                     isValid: false
-                })
+                }).execute()
                 res.json({
                     msg: "Succesfully deactivated account"
                 })
