@@ -36,7 +36,7 @@ router.get("/course-list", async (req: Request, res: Response) => {
 router.get("/course/:course_url", async (req: Request, res: Response) => {
     const courseQuery = (await db.selectFrom("courses").selectAll().where("url", "=", req.params.course_url).execute())
     let progressQuery: any[] = []
-    if(req.session.isAuthenticated){
+    if(req.session.isAuthenticated && courseQuery.length > 0){
         progressQuery = (await db.selectFrom("progress").selectAll().where("userId", "=", req.session.userId!).where("courseId", "=", courseQuery[0].id).execute()).sort((a, b) => b.timestampCreated.getTime() - a.timestampCreated.getTime())
     }
     if(courseQuery.length === 0 || !courseQuery[0].isPublished && !req.session.isStaff && !req.session.isSuperuser){
