@@ -93,6 +93,7 @@ router.post("/signup", async (req: Request, res: Response) => {
                 lastname: req.body.lastname,
                 email: req.body.email,
                 passwordHash: passwordHash,
+                isTeacher: req.body.isTeacher ? true : false,
                 salt: salt
             }).returningAll().executeTakeFirst()
 
