@@ -145,8 +145,6 @@ router.post("/reset-password", async (req: Request, res: Response) => {
             const salt = query[0]["salt"]
             const passwordHash = query[0]["passwordHash"]
             const attemptedHash = await hashPassword(passwordInput, salt)
-            console.log("Found email in db " + salt + " " + passwordHash)
-            console.log(attemptedHash)
             if (attemptedHash === passwordHash) {
                 authenticated = true;
                 const salt = crypto.randomBytes(16).toString("hex")
@@ -172,6 +170,44 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     catch (err) {
         res.status(500).json({
             msg: "Unable to reset passwords at this time"
+        })
+        console.log(err)
+    }
+})
+
+router.post("/deactivate-account", async (req: Request, res: Response) => {
+    try {
+        const passwordInput = req.body.password
+        const query = await db.selectFrom("users").selectAll().where("id", "=", req.session.userId!).execute();
+        let authenticated = false;
+        if (query.length === 1) {
+            const salt = query[0]["salt"]
+            const passwordHash = query[0]["passwordHash"]
+            const attemptedHash = await hashPassword(passwordInput, salt)
+            if (attemptedHash === passwordHash) {
+                authenticated = true;
+                const salt = crypto.randomBytes(16).toString("hex")
+                const passwordHash = await hashPassword(req.body.password, salt)
+                
+                db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
+                    isValid: false
+                })
+                res.json({
+                    msg: "Succesfully deactivated account"
+                })
+
+            }
+        }
+        if (!authenticated) {
+            res.status(401).json({
+                msg: "Invalid original password"
+            })
+            console.log("Failed authentication attempt")
+        }
+    }
+    catch (err) {
+        res.status(500).json({
+            msg: "Unable to deactivate accounts at this time"
         })
         console.log(err)
     }
