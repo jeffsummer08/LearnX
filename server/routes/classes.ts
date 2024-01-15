@@ -132,7 +132,7 @@ router.post("/create-class", async (req: Request, res: Response) => {
             teacher: req.session.userId
         }).execute()
         res.status(201).json({
-            msg: "Succesfully created class!"
+            msg: "Sucessfully created class!"
         })
     }
 })
@@ -147,7 +147,7 @@ router.post("/delete-class", async (req: Request, res: Response) => {
         }
         await db.deleteFrom("classes").where("id", "=", classQuery.id).execute()
         res.json({
-            msg: "Succesfully deleted class"
+            msg: "Sucessfully deleted class"
         })
         
     }
@@ -160,16 +160,27 @@ router.post("/delete-class", async (req: Request, res: Response) => {
 
 router.post("/ban-student/", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
-    if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
-        await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
-            classes: sql`array_remove(classes, ${classQuery!.id})`
-        })).execute()
-
-    }
-    else{
+    if(!classQuery || req.session.userId != classQuery.teacher && !req.session.classes!.includes(classQuery.id) && !req.session.isStaff && !req.session.isSuperuser){
         res.status(401).json({
             msg: "Invalid join code"
         })
+    }
+    else if(req.session.userId != classQuery.teacher && !req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!classQuery.students.includes(parseInt(req.body.student_id))){
+        res.sendStatus(401).json({
+            msg: "User is not in your class"
+        })
+    }
+    else{
+        await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
+            classes: sql`array_remove(classes, ${classQuery!.id})`
+        })).execute()
+        await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
+            classes: eb("classes", "||", <any>`{${-classQuery!.id}}`)
+        })).execute()
+        db.executeQuery(sql`delete from sessions where sess ->> 'userId'='${req.body.student_id}'`.compile(db))
     }
 })
 
@@ -190,7 +201,7 @@ router.post("/edit-class", async (req: Request, res: Response) => {
             name: req.body.name
         }).execute()
         res.json({
-            msg: "Succesfully edited class"
+            msg: "Successfully edited class"
         })
     }
 })
@@ -222,7 +233,7 @@ router.post("/join-class", async (req: Request, res: Response) => {
         if(classRes.length === 1){
             req.session.classes!.push(classQuery.id)
             res.json({
-                msg: "Succesfully joined class"
+                msg: "Sucessfully joined class"
             })
         }
         else{
