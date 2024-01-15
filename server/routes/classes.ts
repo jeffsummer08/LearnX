@@ -114,7 +114,7 @@ router.get("/:join_code/view/:student_id", async (req: Request, res: Response) =
     }
 })
 
-router.post("/create-class/", async (req: Request, res: Response) => {
+router.post("/create-class", async (req: Request, res: Response) => {
     if(!req.session.isTeacher && !req.session.isStaff && !req.session.isSuperuser){
         res.status(403).json({
             msg: "You must be a teacher to create a class"
@@ -136,10 +136,24 @@ router.post("/create-class/", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/delete-class/", async (req: Request, res: Response) => {
+router.post("/delete-class", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
     if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
         await db.updateTable("users").where("id", "in", classQuery.students).set((eb) => ({
+            classes: sql`array_remove(classes, ${classQuery!.id})`
+        })).execute()
+    }
+    else{
+        res.status(401).json({
+            msg: "Invalid join code"
+        })
+    }
+})
+
+router.post("/ban-user/", async (req: Request, res: Response) => {
+    let classQuery = await joinCodeToClass(req.body.join_code)
+    if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
+        await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
             classes: sql`array_remove(classes, ${classQuery!.id})`
         })).execute()
     }
@@ -163,9 +177,12 @@ router.post("/edit-class", async (req: Request, res: Response) => {
         })
     }
     else{
-        await db.updateTable("classes").where("id", "in", classQuery.id).set(<UpdateClass> {
+        await db.updateTable("classes").where("id", "=", classQuery.id).set(<UpdateClass> {
             name: req.body.name
         }).execute()
+        res.json({
+            msg: "Succesfully edited class"
+        })
     }
 })
 
