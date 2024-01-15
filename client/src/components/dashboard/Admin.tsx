@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react"
 import { Card, CardBody, CardHeader, Modal, ModalBody, ModalHeader, Input, useDisclosure, ModalContent, Button, ModalFooter, Divider, Textarea } from "@nextui-org/react"
-import { PlusCircleFill, Upload } from "react-bootstrap-icons"
+import { Pencil, PlusCircleFill, Trash, Upload } from "react-bootstrap-icons"
 import Loading from "../Loading"
 import GetCourseList from "../functions/GetCourseList"
 import client from "../instance"
@@ -9,6 +9,8 @@ import { toast } from "react-toastify"
 export default function AdminDashboard() {
     const [loading, setLoading] = useState<boolean>(true)
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const deleteWarning = useDisclosure()
+    const editForm = useDisclosure()
     const [creating, setCreating] = useState<boolean>(false)
     const [title, setTitle] = useState<string>("")
     const [alias, setAlias] = useState<string>("")
@@ -16,6 +18,7 @@ export default function AdminDashboard() {
     const [img, setImg] = useState<string | null>(null)
     const [imgName, setImgName] = useState<string>("")
     const [courses, setCourses] = useState<{ title: string, url: string, thumbnail: string, description: string, isPublished: boolean }[]>([])
+    const [target, setTarget] = useState<number>(-1)
     const [error, setError] = useState({
         title: {
             error: false,
@@ -47,7 +50,7 @@ export default function AdminDashboard() {
         })
     }, [])
 
-    const validate = () => {
+    const validate = (type: "edit" | "create") => {
         let valid = true
         if (title.length === 0) {
             valid = false
@@ -107,21 +110,23 @@ export default function AdminDashboard() {
                 }
             }))
         }
-        if (!img || !imgName) {
-            valid = false
-            setError(prevError => ({
-                ...prevError,
-                img: {
-                    error: true,
-                    msg: "Please upload image"
-                }
-            }))
+        if (!(type === "edit")) {
+            if (!img || !imgName) {
+                valid = false
+                setError(prevError => ({
+                    ...prevError,
+                    img: {
+                        error: true,
+                        msg: "Please upload image"
+                    }
+                }))
+            }
         }
         return valid
     }
 
     const handleSubmit = async () => {
-        if (validate()) {
+        if (validate("create")) {
             setCreating(true)
             try {
                 const imgUrl = await client.post("/content/file-upload", {
@@ -147,6 +152,7 @@ export default function AdminDashboard() {
                     hideProgressBar: true,
                 })
                 setCreating(false)
+                return true
             } catch (error) {
                 console.error(error)
                 toast.error("An unexpected error occurred.", {
@@ -155,6 +161,77 @@ export default function AdminDashboard() {
                     hideProgressBar: false,
                 })
             }
+        } else {
+            return false
+        }
+    }
+
+    const deleteCourse = async (url: string) => {
+        try {
+            await client.post("/content/delete-course", {
+                url: url
+            })
+            const res = await GetCourseList()
+            if (res.error) {
+                toast.error("An unexpected error occurred.", {
+                    position: "top-center",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                })
+            } else {
+                toast.success("Course deleted successfully.", {
+                    position: "top-center",
+                    autoClose: 1500,
+                    hideProgressBar: true,
+                })
+                setCourses(res.data.reverse())
+                setLoading(false)
+            }
+        } catch (error: any) {
+            console.error(error)
+            toast.error("An unexpected error occurred.", {
+                position: "top-center",
+                autoClose: 3000,
+                hideProgressBar: false,
+            })
+        }
+    }
+
+    const editCourse = async (url: string, imageUrl: string) => {
+        if (validate("edit")) {
+            setCreating(true)
+            try {
+                await client.post("/content/edit-course", {
+                    url: url,
+                    title: title,
+                    description: description,
+                    thumbnail: imageUrl,
+                    update_url: alias
+                })
+                const response = await GetCourseList()
+                if (response.error) {
+                    toast.error("An unexpected error occurred.")
+                } else {
+                    setCourses(response.data.reverse())
+                    setLoading(false)
+                }
+                toast.success("Course edited successfully.", {
+                    position: "top-center",
+                    autoClose: 1500,
+                    hideProgressBar: true,
+                })
+                setCreating(false)
+                return true
+            } catch (error) {
+                console.error(error)
+                toast.error("An unexpected error occurred.", {
+                    position: "top-center",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                })
+            }
+        } else {
+            return false
         }
     }
 
@@ -174,15 +251,29 @@ export default function AdminDashboard() {
                         </Card>
                         {
                             courses.map((course, index) => (
-                                <Card key={index} className="w-full lg:w-[32%] h-[400px] pb-5" isPressable onClick={() => {
-                                    window.location.assign(`/courses/${course.url}`)
-                                }}>
+                                <Card key={index} className="w-full lg:w-[32%] h-[400px] pb-5">
                                     <CardHeader className="w-full flex flex-row justify-center h-1/2">
                                         <img alt="thumbnail" src={course.thumbnail} className="rounded-xl object-cover w-full h-full" />
                                     </CardHeader>
                                     <CardBody className="w-full h-full px-5">
-                                        <h1 className="text-xl">{course.title}</h1>
+                                        <div className="flex flex-row gap-x-2 items-center">
+                                            <h1 className="text-xl">{course.title}</h1>
+                                            <Pencil className="hover:text-primary cursor-pointer" onClick={() => {
+                                                setTarget(index)
+                                                setTitle(course.title)
+                                                setAlias(course.url)
+                                                setDescription(course.description)
+                                                editForm.onOpen()
+                                            }} />
+                                            <Trash className="hover:text-danger cursor-pointer" onClick={() => {
+                                                setTarget(index)
+                                                deleteWarning.onOpen()
+                                            }} />
+                                        </div>
                                         <p className="text-sm text-gray-500 line-clamp-2 overflow-hidden overflow-ellipsis">{course.description}</p>
+                                        <Button className="mt-auto" color='primary' onClick={() => {
+                                            window.location.assign(`/courses/${course.url}`)
+                                        }}>Go to Course</Button>
                                     </CardBody>
                                 </Card>
                             ))
@@ -193,6 +284,7 @@ export default function AdminDashboard() {
                     setImg(null)
                     setTitle("")
                     setDescription("")
+                    setAlias("")
                     setError({
                         title: {
                             error: false,
@@ -217,9 +309,9 @@ export default function AdminDashboard() {
                             <>
                                 <ModalHeader>Create Course</ModalHeader>
                                 <ModalBody className="pb-5">
-                                    <Input value={title} isInvalid={error.title.error} errorMessage={error.title.msg} label="Course Title" onInput={(e) => {
-                                        setTitle(e.currentTarget.value)
-                                        setAlias(e.currentTarget.value.toLowerCase().trim().replace(/ /g, "-"))
+                                    <Input value={title} isInvalid={error.title.error} errorMessage={error.title.msg} label="Course Title" onChange={(e) => {
+                                        setTitle(e.target.value)
+                                        setAlias(e.target.value.toLowerCase().trim().replace(/ /g, "-"))
                                         setError(prevError => ({
                                             ...prevError,
                                             title: {
@@ -228,8 +320,8 @@ export default function AdminDashboard() {
                                             }
                                         }))
                                     }} labelPlacement="outside" placeholder="Enter Title" variant="bordered" size="lg" />
-                                    <Input value={alias} isInvalid={error.alias.error} errorMessage={error.alias.msg} label="Course Alias" onInput={(e) => {
-                                        setAlias(e.currentTarget.value)
+                                    <Input value={alias} isInvalid={error.alias.error} errorMessage={error.alias.msg} label="Course Alias" onChange={(e) => {
+                                        setAlias(e.target.value)
                                         setError(prevError => ({
                                             ...prevError,
                                             alias: {
@@ -238,8 +330,8 @@ export default function AdminDashboard() {
                                             }
                                         }))
                                     }} labelPlacement="outside" placeholder="Enter Alias" variant="bordered" size="lg" />
-                                    <Textarea isInvalid={error.description.error} errorMessage={error.description.msg} label="Course Description" onInput={(e) => {
-                                        setDescription(e.currentTarget.value)
+                                    <Textarea value={description} isInvalid={error.description.error} errorMessage={error.description.msg} label="Course Description" onChange={(e) => {
+                                        setDescription(e.target.value)
                                         setError(prevError => ({
                                             ...prevError,
                                             description: {
@@ -279,10 +371,112 @@ export default function AdminDashboard() {
                                 <Divider />
                                 <ModalFooter>
                                     <Button color="primary" className="w-full" isLoading={creating} onClick={() => {
-                                        handleSubmit().then(() => {
-                                            onClose()
+                                        handleSubmit().then((res) => {
+                                            if (res === true) {
+                                                onClose()
+                                            }
                                         })
                                     }}>{creating ? "" : "Create Course"}</Button>
+                                </ModalFooter>
+                            </>
+                        )}
+                    </ModalContent>
+                </Modal>
+                <Modal isOpen={deleteWarning.isOpen} onOpenChange={deleteWarning.onOpenChange} isDismissable={!creating} hideCloseButton={creating} onClose={() => {
+                    setCreating(false)
+                    setTarget(-1)
+                }}>
+                    <ModalContent>
+                        {(onClose) => (
+                            <>
+                                <ModalHeader>Delete Course</ModalHeader>
+                                <ModalBody className="pb-5">
+                                    <p className="text-lg">Are you sure you want to delete this course?</p>
+                                </ModalBody>
+                                <Divider />
+                                <ModalFooter>
+                                    <Button color="danger" className="w-full" onClick={() => {
+                                        setCreating(true)
+                                        deleteCourse(courses[target].url).then(() => {
+                                            onClose()
+                                        })
+                                    }}>Delete Course</Button>
+                                </ModalFooter>
+                            </>
+                        )}
+                    </ModalContent>
+                </Modal>
+                <Modal isOpen={editForm.isOpen} onOpenChange={editForm.onOpenChange} isDismissable={!creating} hideCloseButton={creating} onClose={() => {
+                    setImg(null)
+                    setImgName("")
+                    setTitle("")
+                    setDescription("")
+                    setError({
+                        title: {
+                            error: false,
+                            msg: ""
+                        },
+                        alias: {
+                            error: false,
+                            msg: ""
+                        },
+                        description: {
+                            error: false,
+                            msg: ""
+                        },
+                        img: {
+                            error: false,
+                            msg: ""
+                        }
+                    })
+                    setTarget(-1)
+                }}>
+                    <ModalContent>
+                        {(onClose) => (
+                            <>
+                                <ModalHeader>Edit Course</ModalHeader>
+                                <ModalBody className="pb-5">
+                                    <Input value={title} isInvalid={error.title.error} errorMessage={error.title.msg} label="Course Title" onChange={(e) => {
+                                        setTitle(e.target.value)
+                                        setAlias(e.target.value.toLowerCase().trim().replace(/ /g, "-"))
+                                        setError(prevError => ({
+                                            ...prevError,
+                                            title: {
+                                                error: false,
+                                                msg: ""
+                                            }
+                                        }))
+                                    }} labelPlacement="outside" placeholder="Enter Title" variant="bordered" size="lg" />
+                                    <Input value={alias} isInvalid={error.alias.error} errorMessage={error.alias.msg} label="Course Alias" onChange={(e) => {
+                                        setAlias(e.target.value)
+                                        setError(prevError => ({
+                                            ...prevError,
+                                            alias: {
+                                                error: false,
+                                                msg: ""
+                                            }
+                                        }))
+                                    }} labelPlacement="outside" placeholder="Enter Alias" variant="bordered" size="lg" />
+                                    <Textarea value={description} isInvalid={error.description.error} errorMessage={error.description.msg} label="Course Description" onChange={(e) => {
+                                        setDescription(e.target.value)
+                                        setError(prevError => ({
+                                            ...prevError,
+                                            description: {
+                                                error: false,
+                                                msg: ""
+                                            }
+                                        }))
+                                    }} labelPlacement="outside" placeholder="Enter Description" variant="bordered" size="lg" maxRows={3} />
+                                </ModalBody>
+                                <Divider />
+                                <ModalFooter>
+                                    <Button color="primary" className="w-full" isLoading={creating} onClick={() => {
+                                        editCourse(courses[target].url, courses[target].thumbnail).then((res) => {
+                                            if (res === true) {
+                                                onClose()
+                                            }
+                                        })
+                                    }}>{creating ? "" : "Edit Course"}</Button>
                                 </ModalFooter>
                             </>
                         )}

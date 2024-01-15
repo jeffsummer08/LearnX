@@ -1,5 +1,4 @@
-import { Navbar, NavbarBrand, NavbarContent, Button, NavbarItem, NavbarMenu, NavbarMenuToggle, NavbarMenuItem, Dropdown, DropdownItem, DropdownTrigger, DropdownMenu } from "@nextui-org/react"
-import { Link } from "react-router-dom"
+import { Navbar, NavbarBrand, NavbarContent, Button, NavbarItem, NavbarMenu, NavbarMenuToggle, NavbarMenuItem, Dropdown, DropdownItem, DropdownTrigger, DropdownMenu, Link } from "@nextui-org/react"
 import client from "./instance"
 import { toast } from "react-toastify"
 
@@ -7,13 +6,22 @@ import { toast } from "react-toastify"
 interface Props {
     role?: string[] | null
     name?: string | null
+    active?: number
 }
 
 export default function Nav(props: Props) {
 
     const links = [
         {
-            name: props.role,
+            name: "Student",
+            href: "/"
+        },
+        {
+            name: "Teachers",
+            href: "/"
+        },
+        {
+            name: "Courses",
             href: "/"
         }
     ]
@@ -35,7 +43,7 @@ export default function Nav(props: Props) {
         window.location.assign("/")
     }
     return (
-        <Navbar className="border-b border-black">
+        <Navbar isBordered>
             <NavbarContent>
                 <NavbarMenuToggle
                     className="md:hidden"
@@ -55,7 +63,7 @@ export default function Nav(props: Props) {
                 {
                     links.map((link, index) => (
                         <NavbarItem key={index}>
-                            <Link to={link.href}>{link.name}</Link>
+                            <Link className={props.active === index ? "text-primary" : "text-inherit"} href={link.href}>{link.name}</Link>
                         </NavbarItem>
                     ))
                 }
@@ -99,7 +107,13 @@ export default function Nav(props: Props) {
                 </NavbarItem>
             </NavbarContent>
             <NavbarMenu>
-                <NavbarMenuItem><Link to="/">Test</Link></NavbarMenuItem>
+                {
+                    links.map((link, index) => (
+                        <NavbarMenuItem key={index}>
+                            <Link href={link.href}>{link.name}</Link>
+                        </NavbarMenuItem>
+                    ))
+                }
             </NavbarMenu>
         </Navbar>
     )

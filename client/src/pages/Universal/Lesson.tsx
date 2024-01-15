@@ -176,7 +176,7 @@ export default function Lesson() {
             <Container>
                 <Nav role={role} name={name} />
                 <div className="flex flex-col-reverse md:flex-row w-full h-full overflow-hidden">
-                    <div aria-label="side-menu" className="h-[300px] md:h-full flex justify-center md:w-1/5 border border-r-gray-200 overflow-y-auto">
+                    <div aria-label="side-menu" className="h-[250px] md:h-full flex justify-center md:w-1/5 border border-r-gray-200 overflow-y-auto">
                         <div className="w-5/6 mt-5 gap-y-5 flex flex-col items-start">
                             <div className="flex flex-col gap-y-1">
                                 <p className="text-sm cursor-pointer select-none flex flex-row items-center gap-x-2" onClick={() => {
@@ -222,7 +222,7 @@ export default function Lesson() {
                             )
                         }
                         {
-                            content.type === "Lesson" ? (
+                            content.type === "article" ? (
                                 <>
                                     <h1 className="pb-5">{courseData.units[courseData.units.findIndex((i: any) => i.url === unitId)].lessons[active].title}</h1>
                                     <Markdown rehypePlugins={[rehypeRaw]}>{content.markdown}</Markdown>
@@ -295,7 +295,7 @@ export default function Lesson() {
                                                                 {
                                                                     questions[activeQuestion].answers.map((item, index) => (
                                                                         <Fragment key={index}>
-                                                                            <Radio value={index.toString()} color="success" onClick={() => {
+                                                                            <Radio value={index.toString()} color="primary" onClick={() => {
                                                                                 const newAnswers = [...answers]
                                                                                 newAnswers[activeQuestion].answer = [item.answer]
                                                                                 newAnswers[activeQuestion].saved = true
@@ -311,7 +311,7 @@ export default function Lesson() {
                                                             <div className="flex flex-col gap-y-2 mt-3" key={index} style={{ display: activeQuestion === index ? "" : "none" }}>
                                                                 {
                                                                     questions[activeQuestion].answers.map((item, index) => (
-                                                                        <Checkbox color="success" key={index} onClick={() => {
+                                                                        <Checkbox color="primary" key={index} onClick={() => {
                                                                             const newAnswers = [...answers]
                                                                             if (newAnswers[activeQuestion].answer[index] === item.answer) {
                                                                                 newAnswers[activeQuestion].answer.splice(newAnswers[activeQuestion].answer.indexOf(item.answer), 1)

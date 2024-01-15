@@ -76,7 +76,7 @@ export default function AuthForm(props: Props) {
         }))
     }
     function handleChange(parameter: "firstname" | "lastname" | "email" | "confirmemail" | "password" | "confirmpassword", e: FormEvent<HTMLInputElement>) {
-        const value = e.currentTarget.value
+        const value = e.target.value
         setValues(prevState => ({
             ...prevState,
             [parameter]: value
@@ -180,7 +180,7 @@ export default function AuthForm(props: Props) {
                                     type="text"
                                     label="First Name"
                                     variant="bordered"
-                                    onInput={(e) => {
+                                    onChange={(e) => {
                                         handleChange("firstname", e)
                                     }}
                                     isInvalid={errors.firstname.error}
@@ -190,7 +190,7 @@ export default function AuthForm(props: Props) {
                                     type="text"
                                     label="Last Name"
                                     variant="bordered"
-                                    onInput={(e) => {
+                                    onChange={(e) => {
                                         handleChange("lastname", e)
                                     }}
                                     isInvalid={errors.lastname.error}
@@ -205,7 +205,7 @@ export default function AuthForm(props: Props) {
                         type="email"
                         label="Email"
                         variant="bordered"
-                        onInput={(e) => handleChange("email", e)}
+                        onChange={(e) => handleChange("email", e)}
                         isInvalid={errors.email.error}
                         errorMessage={errors.email.error ? errors.email.msg : ""}
                     />
@@ -215,7 +215,7 @@ export default function AuthForm(props: Props) {
                                 type="email"
                                 label="Confirm Email"
                                 variant="bordered"
-                                onInput={(e) => handleChange("confirmemail", e)}
+                                onChange={(e) => handleChange("confirmemail", e)}
                                 isInvalid={errors.confirmemail.error}
                                 errorMessage={errors.confirmemail.error ? errors.confirmemail.msg : ""}
                             />
@@ -227,7 +227,7 @@ export default function AuthForm(props: Props) {
                         type={isVisible.password ? "text" : "password"}
                         label="Password"
                         variant="bordered"
-                        onInput={(e) => handleChange("password", e)}
+                        onChange={(e) => handleChange("password", e)}
                         endContent={
                             <button className="focus:outline-none" type="button" onClick={() => {
                                 toggleVisibility("password")
@@ -248,7 +248,7 @@ export default function AuthForm(props: Props) {
                                 type={isVisible.confirmpassword ? "text" : "password"}
                                 label="Confirm Password"
                                 variant="bordered"
-                                onInput={(e) => handleChange("confirmpassword", e)}
+                                onChange={(e) => handleChange("confirmpassword", e)}
                                 endContent={
                                     <button className="focus:outline-none" type="button" onClick={() => {
                                         toggleVisibility("confirmpassword")
