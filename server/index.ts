@@ -13,7 +13,7 @@ const app: Express = express()
 app.use(express.json({ limit: "10mb" }))
 
 const dbPool = new Pool({
-    connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
+    connectionString: process.env.DATABASE_STRING,
     max: 1
 })
 app.use(cors({

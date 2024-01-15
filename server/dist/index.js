@@ -15,7 +15,7 @@ const connect_pg_simple_1 = __importDefault(require("connect-pg-simple"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: "10mb" }));
 const dbPool = new pg_1.Pool({
-    connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
+    connectionString: process.env.DATABASE_STRING,
     max: 1
 });
 app.use((0, cors_1.default)({

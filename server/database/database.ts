@@ -7,6 +7,7 @@ import { CourseTable } from "./models/course";
 import { UnitTable } from "./models/unit";
 import { LessonTable } from "./models/lesson";
 import { ProgressTable } from "./models/progress";
+import "dotenv/config"
 
 interface Database {
     users: UserTable
@@ -21,7 +22,7 @@ interface Database {
 const db = new Kysely<Database>({
     dialect: new PostgresDialect({
         pool: new Pool({
-            connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
+            connectionString: process.env.DATABASE_STRING,
             max: 1
         })
     }),
