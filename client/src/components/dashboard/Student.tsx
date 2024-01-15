@@ -1,10 +1,9 @@
 import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider } from "@nextui-org/react"
-import Container from "../Container"
-import Nav from "../Nav"
 import { PlusCircleFill } from "react-bootstrap-icons"
 import { useState, useEffect } from "react"
 import Loading from "../Loading"
-import getUser from "../functions/GetUser"
+import AccessChecker from "../functions/AccessChecker"
+import GetClass from "../functions/GetClass"
 
 export default function StudentDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -16,11 +15,30 @@ export default function StudentDashboard() {
         error: false,
         msg: ""
     })
+    const [role, setRole] = useState<string[]>([])
+    const [name, setName] = useState<string>("")
     const handleRefresh = (code: number) => {
 
     }
     useEffect(() => {
-        setLoading(false)
+        AccessChecker(0).then((res) => {
+            if (res.code === 200) {
+                if (res.data.level > 0 && res.data.level < 3) {
+                    window.location.assign(`/dashboard`)
+                } else {
+                    GetClass().then((res) => {
+                        console.log(res.data)
+                    })
+                    setRole(res.data.role)
+                    setName(`${res.data.firstName} ${res.data.lastName}`)
+                    setLoading(false)
+                }
+            } else if (res.code === 401) {
+                window.location.assign("/login")
+            } else if (res.code === 500) {
+                window.location.assign("/error")
+            }
+        })
     }, [])
     const classes = [
         {
@@ -40,18 +58,15 @@ export default function StudentDashboard() {
         }
     ]
     if (loading) {
-        return (
-            <Container>
-                <Loading></Loading>
-            </Container>
-        )
+        return <Loading />
     } else {
         return (
             <>
-                <div className="w-full grow">
-                    <div aria-label="side-menu" className="hidden h-full md:flex md:w-1/5 md:justify-center border border-r-gray-200">
+                <div className="flex flex-col-reverse md:flex-row w-full h-full overflow-hidden">
+                    <div aria-label="side-menu" className="h-[250px] md:h-full flex justify-center md:w-1/5 border border-r-gray-200 overflow-y-auto">
                         <div className="w-5/6 mt-5 gap-y-5 flex flex-col items-start">
-                            <h1 className="text-xl">Your Classes</h1>
+                            <h1 className="text-xl font-bold">Your Classes</h1>
+                            <Divider />
                             {
                                 classes.map((item, index) => (
                                     <p className="font-bold select-none cursor-pointer" key={item.code} onClick={() => {
@@ -62,11 +77,14 @@ export default function StudentDashboard() {
                                 ))
                             }
                             <Divider />
-                            <Button onClick={onOpen} className="w-full" color="primary">
+                            <Button onClick={onOpen} className="w-full flex-shrink-0" color="primary">
                                 <PlusCircleFill />
                                 Add new class
                             </Button>
                         </div>
+                    </div>
+                    <div className="w-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
+
                     </div>
                 </div>
                 <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={() => {
@@ -84,13 +102,16 @@ export default function StudentDashboard() {
                                                 error: false,
                                                 msg: ""
                                             })
-                                            if (!(e.target.value.length > 6)) {
+                                            if (!(e.target.value.length > 8)) {
                                                 setCode(e.target.value.toUpperCase())
                                             }
-                                        }} className={`w-full border-2 ${error.error ? "border-[#f31260]" : "border-gray-300"} rounded-lg p-3 mt-3 text-center focus:outline-none`} />
+                                        }}
+                                            className={`w-full border-2 rounded-lg p-3 mt-3 text-center focus:outline-none`}
+                                            style={{ border: error.error ? "2px solid #f31260" : "2px solid #006FEE"  }}
+                                        />
                                         <span className={!error.error ? "hidden" : "text-sm self-start text-[#f31260]"}>{error.msg}</span>
                                     </div>
-                                    <Button className="w-full mt-1" isLoading={joining} isDisabled={code.length !== 6 || joining} color="primary" onClick={() => {
+                                    <Button className="w-full mt-1" isLoading={joining} isDisabled={code.length !== 8 || joining} color="primary" onClick={() => {
                                         {
                                             // handleJoin()
                                         }

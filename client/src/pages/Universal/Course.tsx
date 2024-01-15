@@ -166,13 +166,13 @@ export default function Unit() {
                 course_url: courseUrl,
                 unit_url: unitUrl,
                 url: lessonUrl,
-                title: title,
+                title: lesson.data.title,
                 update_url: lessonUrl,
                 isPublished: !published,
                 type: lesson.data.type,
                 markdown: lesson.data.markdown,
                 questions: lesson.data.questions,
-                videoUrl: lesson.data.videoUrl,
+                video_url: lesson.data.videoUrl,
             })
             await client.post("/content/edit-lesson", {
                 course_url: courseUrl,
@@ -184,7 +184,7 @@ export default function Unit() {
                 type: lesson.data.type,
                 markdown: lesson.data.markdown,
                 questions: lesson.data.questions,
-                videoUrl: lesson.data.videoUrl,
+                video_url: lesson.data.videoUrl,
             })
             const res = await GetCourse(courseId!)
             setCourseData(res.data)
@@ -199,7 +199,15 @@ export default function Unit() {
             })
 
         } catch (error: any) {
-            toast.error(error.response.data.msg)
+            toast.update(toastId.current, {
+                render: error.response.data.msg,
+                type: "error",
+                isLoading: false,
+                autoClose: 3000,
+                onClose: () => {
+                    toastId.current = null
+                }
+            })
         }
     }
 
@@ -260,7 +268,7 @@ export default function Unit() {
             <Container>
                 <Nav role={roles} name={name} />
                 <div className="flex flex-col-reverse md:flex-row w-full h-full overflow-hidden">
-                    <div aria-label="side-menu" className="h-[300px] md:h-full flex justify-center md:w-1/5 border border-r-gray-200 overflow-y-auto">
+                    <div aria-label="side-menu" className="h-[250px] md:h-full flex justify-center md:w-1/5 border border-r-gray-200 overflow-y-auto">
                         <div className="w-5/6 mt-5 gap-y-5 flex flex-col items-start pb-2">
                             <h1 className="text-lg md:text-lg lg:text-2xl">{courseData.title}</h1>
                             <Divider />
@@ -313,7 +321,7 @@ export default function Unit() {
                     </div>
                     <div className="w-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
                         {
-                            access && access >= 2 ? (
+                            access && access >= 2 && courseData.units[active] ? (
                                 <div className="w-full pb-5">
                                     <Button onClick={() => {
                                         setTarget(active)
@@ -325,7 +333,7 @@ export default function Unit() {
                             )
                         }
                         {
-                            courseData.units[active].lessons.map((item: any, index: number) => (
+                            courseData.units[active] && courseData.units[active].lessons.map((item: any, index: number) => (
                                 <Card key={index} className="flex-shrink-0">
                                     <CardBody className="p-5">
                                         <p>{item.type === "article" ? `Lesson:` : item.type === "video" ? "Video:" : "Assessment:"}</p>
@@ -570,7 +578,9 @@ export default function Unit() {
                 </Modal>
                 <Modal isOpen={disclosure.isOpen} isDismissable={!deleting} hideCloseButton={deleting} onOpenChange={disclosure.onOpenChange} onClose={() => {
                     setTarget(-1)
-                    setActive((prevState: any) => prevState - 1)
+                    if (!(active === 0)) {
+                        setActive(prevActive => prevActive - 1)
+                    }
                     setDeleting(false)
                 }}>
                     <ModalContent className="text-center">
