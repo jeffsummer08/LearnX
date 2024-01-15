@@ -114,7 +114,7 @@ router.get("/lesson/:course_url/:unit_url/:lesson_url", async (req: Request, res
                 progress: -1
             }
             if(data.type === "article"){
-                data.markdown = DOMPurify.sanitize(lessonQuery[0].content.markdown, {FORCE_BODY: true})
+                data.markdown = DOMPurify.sanitize(lessonQuery[0].content.markdown)
             }
             else if(data.type === "video"){
                 data.videoUrl = lessonQuery[0].content.videoUrl
@@ -462,7 +462,7 @@ router.post("/create-lesson", async (req: Request, res: Response) => {
                     }
                     if(lessonValues.type === "article"){
                         lessonValues.content = {
-                            markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown, {FORCE_BODY: true}) : ""
+                            markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown) : ""
                         }                            
                     }
                     else if(lessonValues.type === "quiz"){
@@ -544,7 +544,7 @@ router.post("/edit-lesson", async (req: Request, res: Response) => {
                 }
                 if(lessonValues.type === "article"){
                     lessonValues.content = {
-                        markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown, {FORCE_BODY: true}) : ""
+                        markdown: req.body.markdown ? DOMPurify.sanitize(req.body.markdown) : ""
                     }                            
                 }
                 else if(lessonValues.type === "quiz"){
