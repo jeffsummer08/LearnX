@@ -32,7 +32,8 @@ router.get("/", async (req: Request, res: Response) => {
         memberOf: {}
     }
     if(req.session.isTeacher || req.session.isStaff || req.session.isSuperuser){
-        const ownedClassQuery = await db.selectFrom("users").where("users.id", "=", req.session.userId!).innerJoin("classes", "classes.teacher", "users.id").select(["classes.id", "classes.name", "classes.students", "classes.timestampCreated"]).execute()
+        const ownedClassQuery = (await db.selectFrom("users").where("users.id", "=", req.session.userId!).innerJoin("classes", "classes.teacher", "users.id")
+            .select(["classes.id", "classes.name", "classes.students", "classes.timestampCreated"]).execute()).sort((a, b) => b.timestampCreated.getTime() - a.timestampCreated.getTime())
         data.ownerOf = ownedClassQuery.map(row => ({
             name: row.name,
             numStudents: row.students.length,
@@ -156,6 +157,7 @@ router.post("/ban-user/", async (req: Request, res: Response) => {
         await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
             classes: sql`array_remove(classes, ${classQuery!.id})`
         })).execute()
+
     }
     else{
         res.status(401).json({
