@@ -1,4 +1,5 @@
 import express, { Request, Response, Express } from "express"
+import path from "path"
 import authRoutes from "./routes/auth"
 import contentRoutes from "./routes/content"
 import classRoutes from "./routes/classes"
@@ -33,10 +34,11 @@ app.use(session({
     }),
     secret: "this is a cryptographically random seed!",
     saveUninitialized: false,
-    cookie: {maxAge: 1000 * 3600 * 24, sameSite: "none"}, //one day in ms
+    cookie: { maxAge: 1000 * 3600 * 24, sameSite: "none", secure: true, httpOnly: true }, //one day in ms
     resave: false,
-    rolling: true
+    rolling: true,
 }))
+
 
 app.use('/auth', authRoutes)
 app.use('/content', contentRoutes)

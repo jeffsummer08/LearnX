@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Button, Card, CardHeader, CardBody, Modal, ModalBody, ModalContent, useDisclosure, Divider, ModalHeader, Input, ModalFooter } from "@nextui-org/react"
 import { Pencil, PlusCircleFill, Trash } from "react-bootstrap-icons"
 import { useState, useEffect } from "react"
