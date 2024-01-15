@@ -173,11 +173,11 @@ router.post("/ban-student", async (req: Request, res: Response) => {
         })
     }
     else{
-        await db.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
-            classes: sql`array_remove(classes, ${sql.lit(classQuery!.id)})`
-        })).execute()
         await db.updateTable("classes").where("id", "=", classQuery!.id).set((eb) => ({
             students: sql`array_remove(students, ${sql.lit(req.body.student_id)})`
+        })).execute()
+        await db.updateTable("users").where("id", "=", req.body.student_id).set((eb) => ({
+            classes: sql`array_remove(classes, ${sql.lit(classQuery!.id)})`
         })).execute()
         await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
             classes: eb("classes", "||", <any>`{${-classQuery!.id}}`)
