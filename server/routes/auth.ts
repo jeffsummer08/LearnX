@@ -137,8 +137,6 @@ router.get("/logout", async (req: Request, res: Response) => {
 })
 
 router.get("/user", (req: Request, res: Response) => {
-    console.log(req.headers.authorization)
-    console.log(req.session.isAuthenticated)
     if (req.session.isAuthenticated) {
         res.status(200).json({
             isAuthenticated: req.session.isAuthenticated,
