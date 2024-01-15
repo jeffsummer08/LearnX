@@ -33,7 +33,7 @@ app.use(session({
     }),
     secret: "this is a cryptographically random seed!",
     saveUninitialized: false,
-    cookie: {maxAge: 1000 * 3600 * 24}, //one day in ms
+    cookie: {maxAge: 1000 * 3600 * 24, secure: true}, //one day in ms
     resave: false,
     rolling: true
 }))
