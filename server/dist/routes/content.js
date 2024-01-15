@@ -18,8 +18,13 @@ const app_1 = require("firebase-admin/app");
 const storage_1 = require("firebase-admin/storage");
 const mime_types_1 = __importDefault(require("mime-types"));
 const isomorphic_dompurify_1 = __importDefault(require("isomorphic-dompurify"));
+require("dotenv/config");
 (0, app_1.initializeApp)({
-    credential: (0, app_1.cert)(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
+    credential: (0, app_1.cert)({
+        projectId: process.env.PROJECT_ID,
+        clientEmail: process.env.CLIENT_EMAIL,
+        privateKey: process.env.PRIVATE_KEY,
+    }),
     storageBucket: "learnx-bpa.appspot.com"
 });
 const bucket = (0, storage_1.getStorage)().bucket();

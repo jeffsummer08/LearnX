@@ -13,6 +13,7 @@ require("dotenv/config");
 const pg_1 = require("pg");
 const connect_pg_simple_1 = __importDefault(require("connect-pg-simple"));
 const app = (0, express_1.default)();
+app.use(express_1.default.json({ limit: "10mb" }));
 const dbPool = new pg_1.Pool({
     connectionString: 'postgres://ogzxfpvy:1tjh3l6XGPAtGiWQQNijFU1SB8CPowoG@bubble.db.elephantsql.com/ogzxfpvy',
     max: 1

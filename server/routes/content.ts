@@ -9,9 +9,14 @@ import { NewUnit, UpdateUnit } from "../database/models/unit"
 import { NewLesson, UpdateLesson } from "../database/models/lesson"
 import DOMPurify from "isomorphic-dompurify"
 import { NewProgress } from "../database/models/progress"
+import "dotenv/config"
 
 initializeApp({
-    credential: cert(require("../learnx-bpa-firebase-adminsdk-x81ds-5497ab747b.json")),
+    credential: cert({
+        projectId: process.env.PROJECT_ID,
+        clientEmail: process.env.CLIENT_EMAIL,
+        privateKey: process.env.PRIVATE_KEY,
+    }),
     storageBucket: "learnx-bpa.appspot.com"
 })
 
