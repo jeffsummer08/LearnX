@@ -17,7 +17,7 @@ const dbPool = new Pool({
     max: 1
 })
 app.use(cors({
-    origin: true,
+    origin: "http://localhost:5173",
     optionsSuccessStatus: 200,
     credentials: true
 }))
