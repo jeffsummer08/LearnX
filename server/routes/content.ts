@@ -236,7 +236,7 @@ router.post("/edit-course", async (req: Request, res: Response) => {
                         isPublished: req.body.isPublished
                     }).execute()
                     res.status(200).json({
-                        msg: "Succesfully edited course"
+                        msg: "Sucessfully edited course"
                     })                    
                 }
             }            
@@ -264,7 +264,7 @@ router.post("/delete-course", async (req: Request, res: Response) => {
             else{
                 await db.deleteFrom("courses").where("url", "=", req.body.url).execute()
                 res.status(200).json({
-                    msg: "Succesfully deleted course"
+                    msg: "Sucessfully deleted course"
                 })
             }            
         }
@@ -648,7 +648,7 @@ router.post("/update-lesson-progress", async (req: Request, res: Response) => {
                     progress: progressValue
                 }).execute()
                 res.status(201).json({
-                    msg: "Succesfully updated lesson progress"
+                    msg: "Sucessfully updated lesson progress"
                 })
             }     
         }
