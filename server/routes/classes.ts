@@ -165,7 +165,7 @@ router.post("/edit-class", async (req: Request, res: Response) => {
     else{
         await db.updateTable("classes").where("id", "in", classQuery.id).set(<UpdateClass> {
             name: req.body.name
-        })
+        }).execute()
     }
 })
 

@@ -3,7 +3,7 @@ import { PlusCircleFill } from "react-bootstrap-icons"
 import { useState, useEffect } from "react"
 import Loading from "../Loading"
 import AccessChecker from "../functions/AccessChecker"
-import GetClass from "../functions/GetClass"
+import GetClass from "../functions/GetClassList"
 
 export default function StudentDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -98,23 +98,21 @@ export default function StudentDashboard() {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="text-2xl">Enter Class Code</span>
                                         <input value={code} onChange={(e) => {
-                                            setError({
-                                                error: false,
-                                                msg: ""
-                                            })
                                             if (!(e.target.value.length > 8)) {
                                                 setCode(e.target.value.toUpperCase())
                                             }
                                         }}
                                             className={`w-full border-2 rounded-lg p-3 mt-3 text-center focus:outline-none`}
-                                            style={{ border: error.error ? "2px solid #f31260" : "2px solid #006FEE"  }}
+                                            style={{ border: error.error ? "2px solid #f31260" : "2px solid #006FEE" }}
                                         />
                                         <span className={!error.error ? "hidden" : "text-sm self-start text-[#f31260]"}>{error.msg}</span>
                                     </div>
                                     <Button className="w-full mt-1" isLoading={joining} isDisabled={code.length !== 8 || joining} color="primary" onClick={() => {
-                                        {
-                                            // handleJoin()
-                                        }
+                                        setError({
+                                            error: false,
+                                            msg: ""
+                                        })
+                                        // handleJoin()
                                         setJoining(true)
                                     }}>{!joining && "Join Class"}</Button>
                                 </ModalBody>

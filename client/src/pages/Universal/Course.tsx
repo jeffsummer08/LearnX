@@ -10,6 +10,7 @@ import { Gear, Pencil, PlusCircle, Trash } from "react-bootstrap-icons"
 import client from "../../components/instance"
 import { toast } from "react-toastify"
 import GetLesson from "../../components/functions/GetLesson"
+import Error from "./Error"
 
 export default function Unit() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -34,6 +35,7 @@ export default function Unit() {
     const [lessonType, setLessonType] = useState<string>("article")
     const [publishing, setPublishing] = useState<boolean>(false)
     const [videoUrl, setVideoUrl] = useState<string>("")
+    const [found, setFound] = useState<boolean>(true)
     const { courseId } = useParams()
     const toastId: any = useRef(null)
     useEffect(() => {
@@ -47,8 +49,7 @@ export default function Unit() {
                 if (courseId) {
                     const course = await GetCourse(courseId)
                     if (course.error) {
-                        window.sessionStorage.setItem("courseError", "true")
-                        window.location.replace("/error")
+                       setFound(false)
                     } else {
                         setCourseData(course.data)
                         setLoading(false)
@@ -263,6 +264,8 @@ export default function Unit() {
 
     if (loading) {
         return <Loading />
+    } else if (!found) {
+        return <Error type="404" />
     } else {
         return (
             <Container>
