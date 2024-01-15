@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express"
 import db from "../database/database"
 import { User, NewUser, UpdateUser } from "../database/models/user"
-import { InsertResult } from "kysely"
+import { sql } from "kysely"
 import crypto from "crypto"
 import util from "util"
 import { QueryExecutorBase } from "kysely/dist/cjs/query-executor/query-executor-base"
@@ -154,10 +154,11 @@ router.post("/reset-password", async (req: Request, res: Response) => {
                     salt: salt,
                     passwordHash: passwordHash
                 }).execute()
+                db.executeQuery(sql`delete from sessions where sess ->> 'userId'='${req.body.student_id}'`.compile(db))
                 res.json({
                     msg: "Succesfully reset password"
                 })
-
+                
             }
         }
         if (!authenticated) {
