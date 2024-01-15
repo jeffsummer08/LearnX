@@ -39,6 +39,7 @@ export default function EditLesson() {
                             window.location.assign("/error")
                         } else {
                             setLessonContent(res.data)
+                            console.log(JSON.stringify(res.data.markdown))
                             setLessonContent((prevState: any) => ({
                                 ...prevState,
                                 markdown: prevState.markdown.replace(/(<img("[^"]*"|[^\/">])*)>/gi, "$1/>")
@@ -71,7 +72,7 @@ export default function EditLesson() {
     }
 
     const saveLesson = async () => {
-        const markdown = getMarkdown()
+        let markdown = getMarkdown()
         setOriginalContent((prevState: any) => ({
             ...prevState,
             markdown: markdown

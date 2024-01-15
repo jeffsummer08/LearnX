@@ -52,6 +52,7 @@ export default function Unit() {
                     const course = await GetCourse(courseId)
                     if (course.error) {
                         setFound(false)
+                        setLoading(false)
                     } else {
                         setCourseData(course.data)
                         setLoading(false)

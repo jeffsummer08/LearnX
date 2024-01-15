@@ -76,7 +76,7 @@ export default function Nav(props: Props) {
                             <Dropdown>
                                 <DropdownTrigger>
                                     <Button
-                                        color="primary"
+                                        style={{ backgroundColor: props.role.includes("staff") || props.role.includes("superuser") ? "#F2B705" : props.role.includes("teacher") ? "#DB27F2" : "#2731F2", color: "white" }}
                                     >
                                         {props.name}
                                     </Button>
@@ -95,11 +95,12 @@ export default function Nav(props: Props) {
                                             </DropdownItem>
                                         ))
                                     }
+                                    <DropdownItem href="/settings">Account Settings</DropdownItem>
                                     <DropdownItem className="text-danger" color="danger" onClick={logout}>Logout</DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
                         ) : (
-                            <Button color="primary" onClick={() => {
+                            <Button style={{ backgroundColor: "#F21F0C", color: "white"  }} onClick={() => {
                                 window.location.assign("/login")
                             }}>Login</Button>
                         )

@@ -166,7 +166,7 @@ export default function AuthForm(props: Props) {
                 }
             }}>
                 <div className="w-5/6 lg:w-1/2 flex flex-col gap-y-7 items-center">
-                    <h1 className="font-normal text-3xl">{props.type === "login" ? "Login" : "Sign Up"}</h1>
+                    <h1 className="font-normal text-3xl">{props.type === "login" ? "Login" : props.for === "student" ? "Student Sign Up" : "Teacher Sign Up"}</h1>
                     <Card className="w-full bg-red-500 text-white" style={{ display: authError.error ? "" : "none" }}>
                         <CardBody>
                             <span className="flex flex-row items-center gap-x-3">
@@ -272,6 +272,22 @@ export default function AuthForm(props: Props) {
                     <Button onClick={handleSubmit} className="w-full" color="primary" isLoading={loading}>
                         {loading ? "" : "Submit"}
                     </Button>
+                    <p>
+                        {
+                            props.type === "login" ? (
+                                <div className="flex flex-col items-center gap-y-3">
+                                    <p>Don't have an account?</p>
+                                    <p>
+                                        <a href="/student/signup" className="text-primary">Sign Up as a Student</a> or <a href="/teacher/signup" className="text-[#DB27F2]">Sign Up as a Teacher</a>
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    Already have an account? <a href="/login" className="text-primary">Login</a>
+                                </>
+                            )
+                        }
+                    </p>
                 </div>
             </div>
         )

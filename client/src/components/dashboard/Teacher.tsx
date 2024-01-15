@@ -32,7 +32,11 @@ export default function TeacherDashboard() {
                     GetClassList().then((res) => {
                         console.log(res.data)
                         setClasses(res.data)
-                        setActive(0)
+                        if (res.data.ownerOf.length > 0) {
+                            setActive(0)
+                        } else {
+                            setLoading(false)
+                        }
                     })
                 }
             } else if (res.code === 401) {
@@ -138,7 +142,7 @@ export default function TeacherDashboard() {
                                 classes.ownerOf.length === 0 && <h2>Create a class</h2>
                             }
                             <Divider />
-                            <Button onClick={onOpen} className="w-full flex-shrink-0" color="primary">
+                            <Button onClick={onOpen} className="w-full flex-shrink-0 text-white bg-[#DB27F2]">
                                 <PlusCircleFill />
                                 Create new class
                             </Button>

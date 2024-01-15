@@ -7,6 +7,7 @@ import AccessChecker from "../functions/AccessChecker"
 import GetClassList from "../functions/GetClassList"
 import client from "../instance"
 import { toast } from "react-toastify"
+import GetClass from "../functions/GetClass"
 
 export default function StudentDashboard() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -28,6 +29,9 @@ export default function StudentDashboard() {
                 } else {
                     GetClassList().then((res) => {
                         console.log(res.data)
+                        if (res.data.memberOf.length > 0) {
+                            setActive(0)
+                        }
                         setClasses(res.data)
                         setLoading(false)
                     })
@@ -59,6 +63,19 @@ export default function StudentDashboard() {
             return false
         }
     }
+
+    useEffect(() => {
+        if (active >= 0) {
+            GetClass(classes.memberOf[active].joinCode).then((res) => {
+                if (res.error) {
+                    toast.error("Invalid class code")
+                } else {
+                    console.log(res.data)
+                }
+                setLoading(false)
+            })
+        }
+    }, [active])
 
     if (loading) {
         return <Loading />
@@ -94,10 +111,10 @@ export default function StudentDashboard() {
                         </div>
                     </div>
                     <div className="w-full lg:w-4/5 flex flex-col gap-y-5 p-10 overflow-y-auto">
-                        <div className="flex flex-row justify-between items-center">
-                            {
-                                active >= 0 ? (
-                                    <>
+                        {
+                            active >= 0 ? (
+                                <>
+                                    <div className="flex flex-row justify-between items-center">
                                         <h3>{classes.memberOf[active].name}</h3>
                                         <div className="flex flex-row items-center gap-x-5">
                                             <div className="flex flex-col items-center">
@@ -105,13 +122,13 @@ export default function StudentDashboard() {
                                                 <p>{classes.memberOf[active].joinCode.toUpperCase()}</p>
                                             </div>
                                         </div>
-                                        <Divider />
-                                    </>
-                                ) : (
-                                    <></>
-                                )
-                            }
-                        </div>
+                                    </div>
+                                    <Divider />
+                                </>
+                            ) : (
+                                <></>
+                            )
+                        }
                     </div>
                 </div>
                 <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={() => {
@@ -142,6 +159,7 @@ export default function StudentDashboard() {
                                         handleJoin().then((res) => {
                                             if (res) {
                                                 onClose()
+                                                setActive(classes.memberOf.length - 1)
                                             }
                                         })
                                     }}>{!joining && "Join Class"}</Button>

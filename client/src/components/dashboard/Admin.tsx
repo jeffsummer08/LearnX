@@ -50,7 +50,7 @@ export default function AdminDashboard() {
         })
     }, [])
 
-    const validate = (type: "edit" | "create") => {
+    const validate = () => {
         let valid = true
         if (title.length === 0) {
             valid = false
@@ -110,23 +110,21 @@ export default function AdminDashboard() {
                 }
             }))
         }
-        if (!(type === "edit")) {
-            if (!img || !imgName) {
-                valid = false
-                setError(prevError => ({
-                    ...prevError,
-                    img: {
-                        error: true,
-                        msg: "Please upload image"
-                    }
-                }))
-            }
+        if (!img || !imgName) {
+            valid = false
+            setError(prevError => ({
+                ...prevError,
+                img: {
+                    error: true,
+                    msg: "Please upload image"
+                }
+            }))
         }
         return valid
     }
 
     const handleSubmit = async () => {
-        if (validate("create")) {
+        if (validate()) {
             setCreating(true)
             try {
                 const imgUrl = await client.post("/content/file-upload", {
@@ -197,15 +195,35 @@ export default function AdminDashboard() {
         }
     }
 
-    const editCourse = async (url: string, imageUrl: string) => {
-        if (validate("edit")) {
+    const editCourse = async (url: string, imageUrl: string, imgData: string) => {
+        let uploadImg = ""
+        if (imageUrl === imgData) {
+            uploadImg = imageUrl
+        } else {
+            try {
+                const imgUrl = await client.post("/content/file-upload", {
+                    fileName: imgName,
+                    fileData: img
+                })
+                uploadImg = imgUrl.data.url
+            } catch (error) {
+                console.error(error)
+                toast.error("An unexpected error occurred.", {
+                    position: "top-center",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                })
+                return true
+            }
+        }
+        if (validate()) {
             setCreating(true)
             try {
                 await client.post("/content/edit-course", {
                     url: url,
                     title: title,
                     description: description,
-                    thumbnail: imageUrl,
+                    thumbnail: uploadImg,
                     update_url: alias
                 })
                 const response = await GetCourseList()
@@ -221,7 +239,6 @@ export default function AdminDashboard() {
                     hideProgressBar: true,
                 })
                 setCreating(false)
-                return true
             } catch (error) {
                 console.error(error)
                 toast.error("An unexpected error occurred.", {
@@ -230,6 +247,7 @@ export default function AdminDashboard() {
                     hideProgressBar: false,
                 })
             }
+            return true
         } else {
             return false
         }
@@ -263,6 +281,7 @@ export default function AdminDashboard() {
                                                 setTitle(course.title)
                                                 setAlias(course.url)
                                                 setDescription(course.description)
+                                                setImg(course.thumbnail)
                                                 editForm.onOpen()
                                             }} />
                                             <Trash className="hover:text-danger cursor-pointer" onClick={() => {
@@ -467,11 +486,37 @@ export default function AdminDashboard() {
                                             }
                                         }))
                                     }} labelPlacement="outside" placeholder="Enter Description" variant="bordered" size="lg" maxRows={3} />
+                                    <Button className="w-full" color={error.img.error ? "danger" : img ? "primary" : "default"} onClick={() => {
+                                        if (fileInput.current) {
+                                            fileInput.current.click()
+                                        }
+                                    }}><Upload size={20} /> {error.img.error ? error.img.msg : img ? "Update Image" : "Upload Image"}</Button>
+                                    <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={() => {
+                                        if (fileInput.current) {
+                                            const file = fileInput.current.files?.item(0)
+                                            if (file) {
+                                                const reader = new FileReader()
+                                                reader.onload = () => {
+                                                    setImg(reader.result as string)
+                                                    setImgName(file.name)
+                                                    setError(prevError => ({
+                                                        ...prevError,
+                                                        img: {
+                                                            error: false,
+                                                            msg: ""
+                                                        }
+                                                    }))
+                                                }
+                                                reader.readAsDataURL(file)
+                                            }
+                                        }
+
+                                    }} />
                                 </ModalBody>
                                 <Divider />
                                 <ModalFooter>
                                     <Button color="primary" className="w-full" isLoading={creating} onClick={() => {
-                                        editCourse(courses[target].url, courses[target].thumbnail).then((res) => {
+                                        editCourse(courses[target].url, courses[target].thumbnail, img!).then((res) => {
                                             if (res === true) {
                                                 onClose()
                                             }

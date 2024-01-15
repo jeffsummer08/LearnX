@@ -150,10 +150,10 @@ router.post("/reset-password", async (req: Request, res: Response) => {
                 const salt = crypto.randomBytes(16).toString("hex")
                 const passwordHash = await hashPassword(req.body.new_password, salt)
                 
-                db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
+                await db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
                     salt: salt,
                     passwordHash: passwordHash
-                })
+                }).execute()
                 res.json({
                     msg: "Succesfully reset password"
                 })

@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { NextUIProvider } from "@nextui-org/react"
 import Home from "./pages/Universal/Home"
 import Login from "./pages/Universal/Login"
-import Signup from "./pages/Universal/Signup"
+import Signup from "./pages/Student/Signup"
 import Dashboard from "./pages/Universal/Dashboard"
 import Error from "./pages/Universal/Error"
 import EditLesson from "./pages/Admin/EditLesson"
@@ -10,6 +10,8 @@ import Lesson from "./pages/Universal/Lesson"
 import Course from "./pages/Universal/Course"
 import { ToastContainer } from "react-toastify"
 import EditQuiz from "./pages/Admin/EditQuiz"
+import TeacherSignup from "./pages/Teacher/TeacherSignup"
+import Settings from "./pages/Universal/Settings"
 
 export default function App() {
   const router = createBrowserRouter([
@@ -23,8 +25,12 @@ export default function App() {
       element: <Login />
     },
     {
-      path: "/signup",
+      path: "/student/signup",
       element: <Signup />
+    },
+    {
+      path: "/teacher/signup",
+      element: <TeacherSignup />
     },
     {
       path: "/dashboard",
@@ -33,6 +39,10 @@ export default function App() {
     {
       path: "/dashboard/:role",
       element: <Dashboard />,
+    },
+    {
+      path: "/settings",
+      element: <Settings />
     },
     {
       path: "/error",
