@@ -160,18 +160,26 @@ router.post("/delete-class", async (req: Request, res: Response) => {
 
 router.post("/ban-student/", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
-    if(classQuery && (classQuery.teacher == req.session.userId || req.session.isStaff || req.session.isSuperuser)){
+    if(!classQuery || req.session.userId != classQuery.teacher && !req.session.classes!.includes(classQuery.id) && !req.session.isStaff && !req.session.isSuperuser){
+        res.status(401).json({
+            msg: "Invalid join code"
+        })
+    }
+    else if(req.session.userId != classQuery.teacher && !req.session.isStaff && !req.session.isSuperuser){
+        res.sendStatus(403)
+    }
+    else if(!classQuery.students.includes(parseInt(req.body.student_id))){
+        res.sendStatus(401).json({
+            msg: "User is not in your class"
+        })
+    }
+    else{
         await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
             classes: sql`array_remove(classes, ${classQuery!.id})`
         })).execute()
         await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
             classes: eb("classes", "||", <any>`{${-classQuery!.id}}`)
         })).execute()
-    }
-    else{
-        res.status(401).json({
-            msg: "Invalid join code"
-        })
     }
 })
 
