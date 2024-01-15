@@ -154,7 +154,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
                     salt: salt,
                     passwordHash: passwordHash
                 }).execute()
-                db.executeQuery(sql`delete from sessions where sess ->> 'userId'='${req.body.userId!}'`.compile(db))
+                await sql`delete from sessions where sess ->> 'userId'='${sql.lit(req.session.userId!)}'`.execute(db)
                 res.json({
                     msg: "Succesfully reset password"
                 })
@@ -193,7 +193,7 @@ router.post("/deactivate-account", async (req: Request, res: Response) => {
                 await db.updateTable("users").where("id", "=", query[0].id).set(<UpdateUser> {
                     isValid: false
                 }).execute()
-                db.executeQuery(sql`delete from sessions where sess ->> 'userId'='${req.body.userId!}'`.compile(db))
+                await sql`delete from sessions where sess ->> 'userId'='${sql.lit(req.session.userId!)}'`.execute(db)
                 res.json({
                     msg: "Succesfully deactivated account"
                 })

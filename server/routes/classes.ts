@@ -158,7 +158,7 @@ router.post("/delete-class", async (req: Request, res: Response) => {
     }
 })
 
-router.post("/ban-student/", async (req: Request, res: Response) => {
+router.post("/ban-student", async (req: Request, res: Response) => {
     let classQuery = await joinCodeToClass(req.body.join_code)
     if(!classQuery || req.session.userId != classQuery.teacher && !req.session.classes!.includes(classQuery.id) && !req.session.isStaff && !req.session.isSuperuser){
         res.status(401).json({
@@ -180,7 +180,10 @@ router.post("/ban-student/", async (req: Request, res: Response) => {
         await db.updateTable("users").where("id", "=", classQuery.students).set((eb) => ({
             classes: eb("classes", "||", <any>`{${-classQuery!.id}}`)
         })).execute()
-        db.executeQuery(sql`delete from sessions where sess ->> 'userId'='${req.body.student_id}'`.compile(db))
+        await sql`delete from sessions where sess ->> 'userId'='${sql.lit(req.body.student_id!)}'`.execute(db)
+        res.json({
+            msg: "Successfully banned student"
+        })
     }
 })
 
